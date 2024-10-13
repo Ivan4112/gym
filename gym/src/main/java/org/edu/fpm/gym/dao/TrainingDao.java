@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Repository
 public class TrainingDao {
@@ -26,6 +27,11 @@ public class TrainingDao {
 
     public Training findById(Long id) {
         return trainingStorage.getTrainings().get(id);
+    }
+
+    public String findAll() {
+        return trainingStorage.getTrainings().values()
+                .stream().map(Training::toString).collect(Collectors.joining("\n"));
     }
 
     private Long generateUniqueKey(Training training) {

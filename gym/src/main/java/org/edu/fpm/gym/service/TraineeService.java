@@ -5,10 +5,16 @@ import org.edu.fpm.gym.entity.Trainee;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class TraineeService {
-    @Autowired
     private TraineeDao traineeDao;
+
+    @Autowired
+    public void setTraineeDao(TraineeDao traineeDao) {
+        this.traineeDao = traineeDao;
+    }
 
     public Trainee createTrainee(Trainee trainee) {
         return traineeDao.save(trainee);
@@ -24,5 +30,9 @@ public class TraineeService {
 
     public Trainee getTraineeById(Long id) {
         return traineeDao.findById(id);
+    }
+
+    public String getAllTrainees() {
+        return traineeDao.findAll();
     }
 }

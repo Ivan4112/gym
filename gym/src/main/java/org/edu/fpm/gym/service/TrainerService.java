@@ -25,4 +25,8 @@ public class TrainerService {
     public Trainer getTrainerById(Long id) {
         return trainerDao.findById(id);
     }
+
+    public String getAllTrainers() {
+        return trainerDao.findAll();
+    }
 }

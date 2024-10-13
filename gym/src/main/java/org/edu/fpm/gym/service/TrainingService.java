@@ -21,4 +21,8 @@ public class TrainingService {
     public Training getTrainingById(Long id) {
         return trainingDao.findById(id);
     }
+
+    public String getAllTrainings() {
+        return trainingDao.findAll();
+    }
 }

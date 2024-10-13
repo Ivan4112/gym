@@ -19,4 +19,16 @@ public class Training {
 
     public Training() {
     }
+
+    @Override
+    public String toString() {
+        return "Training{" +
+                "traineeId=" + traineeId +
+                ", trainerId=" + trainerId +
+                ", trainingName='" + trainingName + '\'' +
+                ", trainingType=" + trainingType +
+                ", trainingDate=" + trainingDate +
+                ", trainingDuration=" + trainingDuration +
+                '}';
+    }
 }

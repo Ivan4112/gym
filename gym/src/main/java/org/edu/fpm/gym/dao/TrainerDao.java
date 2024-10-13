@@ -1,11 +1,13 @@
 package org.edu.fpm.gym.dao;
 
+import org.edu.fpm.gym.entity.Trainee;
 import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.storage.TrainerStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 public class TrainerDao {
@@ -37,6 +39,11 @@ public class TrainerDao {
         } else {
             throw new IllegalArgumentException("Trainer with ID " + id + " not found.");
         }
+    }
+
+    public String findAll() {
+        return trainerStorage.getTrainers().values()
+                .stream().map(Trainer::toString).collect(Collectors.joining("\n"));
     }
 
     private Long generateNewId() {

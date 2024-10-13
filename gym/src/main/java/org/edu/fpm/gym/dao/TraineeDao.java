@@ -5,7 +5,9 @@ import org.edu.fpm.gym.storage.TraineeStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 public class TraineeDao {
@@ -46,6 +48,11 @@ public class TraineeDao {
 
     public Trainee findById(Long userId) {
         return traineeStorage.getTrainees().get(userId);
+    }
+
+    public String findAll() {
+        return traineeStorage.getTrainees().values()
+                .stream().map(Trainee::toString).collect(Collectors.joining("\n"));
     }
 
     private Long generateNewId() {

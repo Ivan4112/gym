@@ -16,4 +16,17 @@ public class Trainer extends User{
         this.userId = userId;
         this.specialization = specialization;
     }
+
+    @Override
+    public String toString() {
+        return "Trainer{" +
+                ", userId=" + userId + '\'' +
+                ", firstName='" + getFirstName() + '\'' +
+                ", lastName='" + getLastName() + '\'' +
+                ", username='" + getUsername() + '\'' +
+                ", password='" + getPassword() + '\'' +
+                ", isActive='" + isActive() + '\'' +
+                "specialization='" + specialization +
+                '}';
+    }
 }

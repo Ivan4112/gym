@@ -1,43 +1,44 @@
 package org.edu.fpm.gym;
 
 import jakarta.annotation.PostConstruct;
-import org.edu.fpm.gym.dao.TraineeDao;
-import org.edu.fpm.gym.dao.TrainerDao;
-import org.edu.fpm.gym.dao.TrainingDao;
 import org.edu.fpm.gym.entity.Trainee;
 import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.entity.Training;
 import org.edu.fpm.gym.entity.TrainingType;
+import org.edu.fpm.gym.service.TraineeService;
+import org.edu.fpm.gym.service.TrainerService;
+import org.edu.fpm.gym.service.TrainingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.Resource;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDate;
 
 @Configuration
 @PropertySource("classpath:application.properties")
 public class DataInitializer {
-    @Autowired
-    private TrainerDao trainerDao;
 
     @Autowired
-    private TraineeDao traineeDao;
+    private TraineeService traineeService;
 
     @Autowired
-    private TrainingDao trainingDao;
+    private TrainerService trainerService;
 
-    @Value("${trainer.data.file}")
-    private String trainerFilePath;
+    @Autowired
+    private TrainingService trainingService;
+
 
     @Value("${trainee.data.file}")
-    private String traineeFilePath;
+    private Resource traineeFilePath;
+
+    @Value("${trainer.data.file}")
+    private Resource trainerFilePath;
 
     @Value("${training.data.file}")
-    private String trainingFilePath;
+    private Resource trainingFilePath;
 
     @PostConstruct
     public void init() {
@@ -47,40 +48,44 @@ public class DataInitializer {
     }
 
     public void initTraineeData() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(traineeFilePath))) {
+        try(BufferedReader reader = new BufferedReader(new InputStreamReader(traineeFilePath.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] data = line.split(",");
                 Trainee trainee = new Trainee(
-                        Long.parseLong(data[0]), data[1],
-                        data[2], data[3], data[4],
-                        Boolean.getBoolean(data[5]),
+                        Long.parseLong(data[0]),
+                        data[1], data[2], data[3], data[4],
+                        Boolean.parseBoolean(data[5]),
                         LocalDate.parse(data[6]), data[7]);
-                traineeDao.save(trainee);
+                traineeService.createTrainee(trainee);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(traineeService.getAllTrainees());
+
     }
 
     public void initTrainerData() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(traineeFilePath))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(trainerFilePath.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] data = line.split(",");
                 Trainer trainer = new Trainer(
-                        Long.parseLong(data[0]), data[1],
-                        data[2], data[3], data[4],
-                        Boolean.getBoolean(data[5]), data[6]);
-                trainerDao.save(trainer);
+                        Long.parseLong(data[0]),
+                        data[1], data[2], data[3], data[4],
+                        Boolean.parseBoolean(data[5]),
+                        data[6]);
+                trainerService.createTrainer(trainer);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(trainerService.getAllTrainers());
     }
 
     public void initTrainingData() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(traineeFilePath))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(trainingFilePath.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] data = line.split(",");
@@ -93,10 +98,11 @@ public class DataInitializer {
                 training.setTrainingType(trainingType);
                 training.setTrainingDate(LocalDate.parse(data[4].trim()));
                 training.setTrainingDuration(Integer.parseInt(data[5].trim()));
-                trainingDao.save(training);
+                trainingService.createTraining(training);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(trainingService.getAllTrainings());
     }
 }

@@ -1,0 +1,5 @@
+1,Chris,Evans,chris.evans,password123,true,12 Cardio
+2,Susan,Harris,susan.harris,password123,true,Yoga
+3,David,Clark,david.clark,password123,true,Strength Training
+4,Karen,Moore,karen.moore,password123,true,Cardio
+5,Tom,Anderson,tom.anderson,password123,true,Aerobics
