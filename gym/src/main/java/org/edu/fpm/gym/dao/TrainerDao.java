@@ -1,8 +1,9 @@
 package org.edu.fpm.gym.dao;
 
-import org.edu.fpm.gym.entity.Trainee;
 import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.storage.TrainerStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 @Repository
 public class TrainerDao {
+    private static final Logger logger = LoggerFactory.getLogger(TrainerDao.class);
     private TrainerStorage trainerStorage;
 
     @Autowired
@@ -23,11 +25,18 @@ public class TrainerDao {
         Long newId = generateNewId();
         trainer.setUserId(newId);
         trainers.put(newId, trainer);
+        logger.info("Saved trainer with ID: {}", trainer.getUserId());
         return trainer;
     }
 
     public Trainer findById(Long id) {
-        return trainerStorage.getTrainers().get(id);
+        Trainer trainer = trainerStorage.getTrainers().get(id);
+        if (trainer != null) {
+            logger.info("Found trainer with ID {}", id);
+        } else {
+            logger.warn("Trainer with ID {} not found", id);
+        }
+        return trainer;
     }
 
     public Trainer update(Trainer trainer) {
@@ -35,9 +44,12 @@ public class TrainerDao {
         Long id = trainer.getUserId();
         if (trainers.containsKey(id)) {
             trainers.put(id, trainer);
+            logger.info("Updated trainer with ID {}", id);
             return trainer;
         } else {
-            throw new IllegalArgumentException("Trainer with ID " + id + " not found.");
+            String errorMessage = "Trainer with ID " + id + " not found.";
+            logger.warn(errorMessage);
+            throw new IllegalArgumentException();
         }
     }
 

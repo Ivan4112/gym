@@ -1,6 +1,7 @@
 package org.edu.fpm.gym;
 
 import jakarta.annotation.PostConstruct;
+import org.edu.fpm.gym.dao.TrainerDao;
 import org.edu.fpm.gym.entity.Trainee;
 import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.entity.Training;
@@ -8,6 +9,8 @@ import org.edu.fpm.gym.entity.TrainingType;
 import org.edu.fpm.gym.service.TraineeService;
 import org.edu.fpm.gym.service.TrainerService;
 import org.edu.fpm.gym.service.TrainingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +23,7 @@ import java.time.LocalDate;
 @Configuration
 @PropertySource("classpath:application.properties")
 public class DataInitializer {
-
+    private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
     @Autowired
     private TraineeService traineeService;
 
@@ -42,9 +45,11 @@ public class DataInitializer {
 
     @PostConstruct
     public void init() {
+        logger.info("Initializing data ...");
         initTraineeData();
         initTrainerData();
         initTrainingData();
+        logger.info("Data has been initialized");
     }
 
     public void initTraineeData() {
@@ -60,7 +65,7 @@ public class DataInitializer {
                 traineeService.createTrainee(trainee);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error initializing trainee data: {}", e.getMessage());
         }
         System.out.println(traineeService.getAllTrainees());
 
@@ -79,7 +84,7 @@ public class DataInitializer {
                 trainerService.createTrainer(trainer);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error initializing trainer data: {}", e.getMessage());
         }
         System.out.println(trainerService.getAllTrainers());
     }
@@ -101,7 +106,7 @@ public class DataInitializer {
                 trainingService.createTraining(training);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error initializing training data: {}", e.getMessage());
         }
         System.out.println(trainingService.getAllTrainings());
     }

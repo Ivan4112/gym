@@ -4,11 +4,12 @@ import org.edu.fpm.gym.dao.TraineeDao;
 import org.edu.fpm.gym.entity.Trainee;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class TraineeService {
+    private static final Logger logger = LoggerFactory.getLogger(TraineeService.class);
     private TraineeDao traineeDao;
 
     @Autowired
@@ -33,6 +34,7 @@ public class TraineeService {
     }
 
     public String getAllTrainees() {
+        logger.info("Retrieving all trainees");
         return traineeDao.findAll();
     }
 }
