@@ -70,7 +70,7 @@ public class TraineeDao {
                 .stream().map(Trainee::toString).collect(Collectors.joining("\n"));
     }
 
-    private Long generateNewId() {
+    public Long generateNewId() {
         return traineeStorage.getTrainees().keySet().stream()
                 .max(Long::compare)
                 .orElse(0L) + 1;

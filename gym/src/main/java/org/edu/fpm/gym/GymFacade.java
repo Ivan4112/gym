@@ -21,7 +21,9 @@ public class GymFacade {
         this.traineeService = traineeService;
         this.trainingService = trainingService;
     }
-
+    public String getAllTrainees(){
+        return traineeService.getAllTrainees();
+    }
     public Trainee createTrainee(Trainee trainee) {
         return traineeService.createTrainee(trainee);
     }
@@ -39,6 +41,10 @@ public class GymFacade {
     }
 
     // Методи для Trainer
+    public String getAllTrainers(){
+        return trainerService.getAllTrainers();
+    }
+
     public Trainer createTrainer(Trainer trainer) {
         return trainerService.createTrainer(trainer);
     }
@@ -52,6 +58,10 @@ public class GymFacade {
     }
 
     // Методи для Training
+    public String getAllTrainings(){
+        return trainingService.getAllTrainings();
+    }
+
     public Training createTraining(Training training) {
         return trainingService.createTraining(training);
     }

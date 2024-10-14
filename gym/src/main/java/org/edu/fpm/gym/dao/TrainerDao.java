@@ -58,7 +58,7 @@ public class TrainerDao {
                 .stream().map(Trainer::toString).collect(Collectors.joining("\n"));
     }
 
-    private Long generateNewId() {
+    public Long generateNewId() {
         return trainerStorage.getTrainers().keySet().stream()
                 .max(Long::compare)
                 .orElse(0L) + 1;

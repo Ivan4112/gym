@@ -25,13 +25,15 @@ import java.time.LocalDate;
 public class DataInitializer {
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
     @Autowired
+    private GymFacade gymFacade;
+    /*@Autowired
     private TraineeService traineeService;
 
     @Autowired
     private TrainerService trainerService;
 
     @Autowired
-    private TrainingService trainingService;
+    private TrainingService trainingService;*/
 
 
     @Value("${trainee.data.file}")
@@ -62,12 +64,12 @@ public class DataInitializer {
                         data[1], data[2], data[3], data[4],
                         Boolean.parseBoolean(data[5]),
                         LocalDate.parse(data[6]), data[7]);
-                traineeService.createTrainee(trainee);
+                gymFacade.createTrainee(trainee);
             }
         } catch (IOException e) {
             logger.error("Error initializing trainee data: {}", e.getMessage());
         }
-        System.out.println(traineeService.getAllTrainees());
+        System.out.println(gymFacade.getAllTrainees());
 
     }
 
@@ -81,12 +83,12 @@ public class DataInitializer {
                         data[1], data[2], data[3], data[4],
                         Boolean.parseBoolean(data[5]),
                         data[6]);
-                trainerService.createTrainer(trainer);
+                gymFacade.createTrainer(trainer);
             }
         } catch (IOException e) {
             logger.error("Error initializing trainer data: {}", e.getMessage());
         }
-        System.out.println(trainerService.getAllTrainers());
+        System.out.println(gymFacade.getAllTrainers());
     }
 
     public void initTrainingData() {
@@ -103,11 +105,11 @@ public class DataInitializer {
                 training.setTrainingType(trainingType);
                 training.setTrainingDate(LocalDate.parse(data[4].trim()));
                 training.setTrainingDuration(Integer.parseInt(data[5].trim()));
-                trainingService.createTraining(training);
+                gymFacade.createTraining(training);
             }
         } catch (IOException e) {
             logger.error("Error initializing training data: {}", e.getMessage());
         }
-        System.out.println(trainingService.getAllTrainings());
+        System.out.println(gymFacade.getAllTrainings());
     }
 }

@@ -2,10 +2,13 @@ package org.edu.fpm.gym.service;
 
 import org.edu.fpm.gym.dao.TraineeDao;
 import org.edu.fpm.gym.entity.Trainee;
+import org.edu.fpm.gym.security.SecurityCredential;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.LocalDate;
 
 @Service
 public class TraineeService {
@@ -13,8 +16,21 @@ public class TraineeService {
     private TraineeDao traineeDao;
 
     @Autowired
+    SecurityCredential securityCredential;
+
+    @Autowired
     public void setTraineeDao(TraineeDao traineeDao) {
         this.traineeDao = traineeDao;
+    }
+
+    public Trainee createTrainee(String firstName, String lastName, LocalDate dateOfBirth, String address) {
+        Long newId = traineeDao.generateNewId();
+
+        String username = securityCredential.generateUsername(firstName, lastName, newId);
+        String password = securityCredential.generatePassword();
+
+        Trainee newTrainee = new Trainee(newId, firstName, lastName, username, password, true, dateOfBirth, address);
+        return traineeDao.save(newTrainee);
     }
 
     public Trainee createTrainee(Trainee trainee) {
