@@ -1,7 +1,6 @@
 package org.edu.fpm.gym.service;
 
 import org.edu.fpm.gym.dao.TrainerDao;
-import org.edu.fpm.gym.entity.Trainee;
 import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.security.SecurityCredential;
 import org.slf4j.Logger;
@@ -9,15 +8,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-
 @Service
 public class TrainerService {
     private static final Logger logger = LoggerFactory.getLogger(TrainerService.class);
     private TrainerDao trainerDao;
 
+    private SecurityCredential securityCredential;
+
     @Autowired
-    SecurityCredential securityCredential;
+    public void setSecurityCredential(SecurityCredential securityCredential) {
+        this.securityCredential = securityCredential;
+    }
 
     @Autowired
     public void setTrainerDao(TrainerDao trainerDao) {

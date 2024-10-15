@@ -15,8 +15,12 @@ public class TraineeService {
     private static final Logger logger = LoggerFactory.getLogger(TraineeService.class);
     private TraineeDao traineeDao;
 
+    private SecurityCredential securityCredential;
+
     @Autowired
-    SecurityCredential securityCredential;
+    public void setSecurityCredential(SecurityCredential securityCredential) {
+        this.securityCredential = securityCredential;
+    }
 
     @Autowired
     public void setTraineeDao(TraineeDao traineeDao) {

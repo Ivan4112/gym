@@ -32,7 +32,7 @@ class SecurityCredentialTest {
     }
 
     @Test
-    void generateUsernameTest() {
+    void generateUsernameByConcatenatingNameAndLastName_Test() {
         when(traineeStorage.getTrainees()).thenReturn(new HashMap<>());
         when(trainerStorage.getTrainers()).thenReturn(new HashMap<>());
 
@@ -41,7 +41,7 @@ class SecurityCredentialTest {
     }
 
     @Test
-    public void generateAlreadyExistingTraineeUsernameTest() {
+    public void generateAlreadyExistingTraineeUsername_Test() {
         Map<Long, Trainee> trainees = new HashMap<>();
         Trainee existingTrainee = new Trainee(1L, "John", "Doe", "john.doe", "pass",
                 true, LocalDate.of(2000, 1, 1), "123 Main St");
@@ -54,7 +54,7 @@ class SecurityCredentialTest {
         assertEquals("John.Doe2", username);
     }
     @Test
-    public void generateAlreadyExistingTrainerUsernameTest() {
+    public void generateAlreadyExistingTrainerUsername_Test() {
         Map<Long, Trainer> trainers = new HashMap<>();
         Trainer existingTrainer = new Trainer(1L, "John", "Doe", "john.doe", "pass",
                 true, "Yoga");
@@ -68,7 +68,7 @@ class SecurityCredentialTest {
     }
 
     @Test
-    void generatePassword() {
+    void generatePassword_Test() {
         String password = securityCredential.generatePassword();
         assertNotNull(password);
         assertEquals(10, password.length());

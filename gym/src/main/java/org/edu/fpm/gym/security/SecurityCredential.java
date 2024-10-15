@@ -1,11 +1,10 @@
 package org.edu.fpm.gym.security;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.edu.fpm.gym.storage.TraineeStorage;
 import org.edu.fpm.gym.storage.TrainerStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Random;
 
 @Component
 public class SecurityCredential {
@@ -24,10 +23,10 @@ public class SecurityCredential {
     }
 
     public String generateUsername(String firstName, String lastName, Long id) {
-        boolean existsTrainee = traineeStorage.getTrainees().values().stream()
+        var existsTrainee = traineeStorage.getTrainees().values().stream()
                 .anyMatch(trainee -> trainee.getFirstName().equals(firstName) && trainee.getLastName().equals(lastName));
 
-        boolean existsTrainer = trainerStorage.getTrainers().values().stream()
+        var existsTrainer = trainerStorage.getTrainers().values().stream()
                 .anyMatch(trainee -> trainee.getFirstName().equals(firstName) && trainee.getLastName().equals(lastName));
 
         if (existsTrainee || existsTrainer) {
@@ -39,14 +38,6 @@ public class SecurityCredential {
 
     public String generatePassword() {
         int passwordLength = 10;
-        String symbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        Random random = new Random();
-        StringBuilder password = new StringBuilder(passwordLength);
-
-        for (int i = 0; i < passwordLength; i++) {
-            password.append(symbols.charAt(random.nextInt(symbols.length())));
-        }
-
-        return password.toString();
+        return RandomStringUtils.randomAlphanumeric(passwordLength);
     }
 }

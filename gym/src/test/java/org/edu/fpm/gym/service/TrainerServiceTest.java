@@ -27,7 +27,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void createTrainerTest() {
+    void createTrainer_Test() {
         when(trainerDao.save(trainer)).thenReturn(trainer);
 
         Trainer createdTrainer = trainerService.createTrainer(trainer);
@@ -37,7 +37,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void updateTrainerTest() {
+    void updateTrainer_Test() {
         when(trainerDao.update(trainer)).thenReturn(trainer);
 
         Trainer updatedTrainer = trainerService.updateTrainer(trainer);
@@ -47,7 +47,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void getTrainerByIdTest() {
+    void getTrainerById_Test() {
         Long id = 1L;
         when(trainerDao.findById(id)).thenReturn(trainer);
 
@@ -58,7 +58,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void getAllTrainersTest() {
+    void getAllTrainers_Test() {
         trainerDao.save(trainer);
         String expectedOutput = trainer.toString();
 

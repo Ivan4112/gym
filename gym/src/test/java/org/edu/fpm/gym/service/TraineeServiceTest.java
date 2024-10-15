@@ -30,7 +30,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void createTrainee() {
+    void createTrainee_Test() {
         when(traineeDao.save(trainee)).thenReturn(trainee);
 
         Trainee createdTrainee = traineeService.createTrainee(trainee);
@@ -40,7 +40,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void updateTrainee() {
+    void updateTrainee_Test() {
         when(traineeDao.update(trainee)).thenReturn(trainee);
 
         Trainee updatedTrainee = traineeService.updateTrainee(trainee);
@@ -50,7 +50,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void deleteTrainee() {
+    void deleteTrainee_Test() {
         Long traineeId = 1L;
 
         doNothing().when(traineeDao).delete(traineeId);
@@ -61,7 +61,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void getTraineeById() {
+    void getTraineeById_Test() {
         Long traineeId = 1L;
         when(traineeDao.findById(traineeId)).thenReturn(trainee);
 
@@ -72,7 +72,7 @@ class TraineeServiceTest {
     }
 
     @Test
-    void getAllTrainees() {
+    void getAllTrainees_Test() {
         traineeDao.save(trainee);
         String expectedOutput = trainee.toString();
 

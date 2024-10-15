@@ -1,14 +1,10 @@
 package org.edu.fpm.gym;
 
 import jakarta.annotation.PostConstruct;
-import org.edu.fpm.gym.dao.TrainerDao;
 import org.edu.fpm.gym.entity.Trainee;
 import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.entity.Training;
 import org.edu.fpm.gym.entity.TrainingType;
-import org.edu.fpm.gym.service.TraineeService;
-import org.edu.fpm.gym.service.TrainerService;
-import org.edu.fpm.gym.service.TrainingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,24 +13,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.Resource;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.LocalDate;
 
 @Configuration
 @PropertySource("classpath:application.properties")
 public class DataInitializer {
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
-    @Autowired
-    private GymFacade gymFacade;
-    /*@Autowired
-    private TraineeService traineeService;
 
     @Autowired
-    private TrainerService trainerService;
+    public DataInitializer(GymFacade gymFacade) {
+        this.gymFacade = gymFacade;
+    }
 
-    @Autowired
-    private TrainingService trainingService;*/
-
+    private final GymFacade gymFacade;
 
     @Value("${trainee.data.file}")
     private Resource traineeFilePath;
@@ -69,7 +63,7 @@ public class DataInitializer {
         } catch (IOException e) {
             logger.error("Error initializing trainee data: {}", e.getMessage());
         }
-        System.out.println(gymFacade.getAllTrainees());
+        logger.info(gymFacade.getAllTrainees());
 
     }
 
@@ -88,7 +82,7 @@ public class DataInitializer {
         } catch (IOException e) {
             logger.error("Error initializing trainer data: {}", e.getMessage());
         }
-        System.out.println(gymFacade.getAllTrainers());
+        logger.info(gymFacade.getAllTrainers());
     }
 
     public void initTrainingData() {
@@ -110,6 +104,6 @@ public class DataInitializer {
         } catch (IOException e) {
             logger.error("Error initializing training data: {}", e.getMessage());
         }
-        System.out.println(gymFacade.getAllTrainings());
+        logger.info(gymFacade.getAllTrainings());
     }
 }

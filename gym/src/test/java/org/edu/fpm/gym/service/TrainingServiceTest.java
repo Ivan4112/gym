@@ -30,7 +30,7 @@ class TrainingServiceTest {
     }
 
     @Test
-    public void createTrainingTest(){
+    public void createTraining_Test(){
         when(trainingDao.save(training)).thenReturn(training);
 
         Training createdTraining = trainingService.createTraining(training);
@@ -41,7 +41,7 @@ class TrainingServiceTest {
     }
 
     @Test
-    public void getTrainingByIdTest(){
+    public void getTrainingById_Test(){
         Long trainingId = 1L;
 
         when(trainingDao.findById(trainingId)).thenReturn(training);
@@ -54,7 +54,7 @@ class TrainingServiceTest {
     }
 
     @Test
-    public void getAllTrainingsTest(){
+    public void getAllTrainings_Test(){
         trainingDao.save(training);
         String expectedOutput = training.toString();
 
