@@ -14,6 +14,9 @@ public class User {
     private String password;
     private boolean isActive;
 
+    public User() {
+    }
+
     @Override
     public String toString() {
         return "User{" +

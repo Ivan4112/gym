@@ -17,6 +17,9 @@ public class Trainer extends User{
         this.specialization = specialization;
     }
 
+    public Trainer() {
+    }
+
     @Override
     public String toString() {
         return "Trainer{" +

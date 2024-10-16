@@ -32,7 +32,7 @@ class SecurityCredentialTest {
     }
 
     @Test
-    void generateUsernameByConcatenatingNameAndLastName_Test() {
+    void generateUsername_ShouldReturnUserNameByConcatenatingNameAndLastName_Test() {
         when(traineeStorage.getTrainees()).thenReturn(new HashMap<>());
         when(trainerStorage.getTrainers()).thenReturn(new HashMap<>());
 
@@ -41,7 +41,7 @@ class SecurityCredentialTest {
     }
 
     @Test
-    public void generateAlreadyExistingTraineeUsername_Test() {
+    public void generateUsername_ShouldReturnUniqUsernameIfSuchUsernameAlreadyExisting_Test() {
         Map<Long, Trainee> trainees = new HashMap<>();
         Trainee existingTrainee = new Trainee(1L, "John", "Doe", "john.doe", "pass",
                 true, LocalDate.of(2000, 1, 1), "123 Main St");
@@ -49,19 +49,6 @@ class SecurityCredentialTest {
 
         when(traineeStorage.getTrainees()).thenReturn(trainees);
         when(trainerStorage.getTrainers()).thenReturn(new HashMap<>());
-
-        String username = securityCredential.generateUsername("John", "Doe", 2L);
-        assertEquals("John.Doe2", username);
-    }
-    @Test
-    public void generateAlreadyExistingTrainerUsername_Test() {
-        Map<Long, Trainer> trainers = new HashMap<>();
-        Trainer existingTrainer = new Trainer(1L, "John", "Doe", "john.doe", "pass",
-                true, "Yoga");
-        trainers.put(1L, existingTrainer);
-
-        when(trainerStorage.getTrainers()).thenReturn(trainers);
-        when(traineeStorage.getTrainees()).thenReturn(new HashMap<>());
 
         String username = securityCredential.generateUsername("John", "Doe", 2L);
         assertEquals("John.Doe2", username);

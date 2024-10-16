@@ -1,5 +1,6 @@
 package org.edu.fpm.gym.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,6 +8,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class Trainee extends User{
     private Long userId;
     private LocalDate dateOfBirth;
@@ -20,6 +22,9 @@ public class Trainee extends User{
         this.userId = userId;
         this.dateOfBirth = dateOfBirth;
         this.address = address;
+    }
+
+    public Trainee() {
     }
 
     @Override

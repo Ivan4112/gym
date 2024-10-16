@@ -2,11 +2,14 @@ package org.edu.fpm.gym.service;
 
 import org.edu.fpm.gym.dao.TrainerDao;
 import org.edu.fpm.gym.entity.Trainer;
+import org.edu.fpm.gym.security.SecurityCredential;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -14,10 +17,12 @@ import static org.mockito.Mockito.*;
 class TrainerServiceTest {
     @Mock
     TrainerDao trainerDao;
-
+    @Mock
+    SecurityCredential securityCredential;
     @InjectMocks
     TrainerService trainerService;
     Trainer trainer;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -37,7 +42,32 @@ class TrainerServiceTest {
     }
 
     @Test
-    void updateTrainer_Test() {
+    void createTrainer_ShouldReturnTrainerWithGeneratedPasswordAndUsername_Test() {
+        String firstName = "John";
+        String lastName = "Doe";
+        String specialization = "Running";
+        Long newId = 1L;
+        String generatedUsername = "John.Doe";
+        String generatedPassword = "randomPassword";
+
+        when(trainerDao.generateNewId()).thenReturn(newId);
+        when(securityCredential.generateUsername(firstName, lastName, newId)).thenReturn(generatedUsername);
+        when(securityCredential.generatePassword()).thenReturn(generatedPassword);
+
+        Trainer expectedTrainer = new Trainer(newId, firstName, lastName, generatedUsername, generatedPassword, true, specialization);
+        when(trainerDao.save(any(Trainer.class))).thenReturn(expectedTrainer);
+
+        Trainer result = trainerService.createTrainee(firstName, lastName, specialization);
+
+        verify(trainerDao).generateNewId();
+        verify(securityCredential).generateUsername(firstName, lastName, newId);
+        verify(securityCredential).generatePassword();
+        verify(trainerDao).save(any(Trainer.class));
+        assertEquals(expectedTrainer, result);
+    }
+
+    @Test
+    void updateTrainer_ShouldReturnTrainer_Test() {
         when(trainerDao.update(trainer)).thenReturn(trainer);
 
         Trainer updatedTrainer = trainerService.updateTrainer(trainer);
@@ -47,7 +77,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void getTrainerById_Test() {
+    void getTrainerById_ShouldReturnTrainer_Test() {
         Long id = 1L;
         when(trainerDao.findById(id)).thenReturn(trainer);
 
@@ -58,7 +88,7 @@ class TrainerServiceTest {
     }
 
     @Test
-    void getAllTrainers_Test() {
+    void getAllTrainers_ShouldReturnStringWithAllTrainers_Test() {
         trainerDao.save(trainer);
         String expectedOutput = trainer.toString();
 
