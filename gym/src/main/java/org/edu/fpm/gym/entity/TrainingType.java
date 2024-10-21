@@ -1,16 +1,23 @@
 package org.edu.fpm.gym.entity;
 
-import lombok.AllArgsConstructor;
+import jakarta.persistence.*;
 import lombok.Getter;
 
-@AllArgsConstructor
+@Entity
 @Getter
-public enum TrainingType {
-    YOGA("Yoga"),
-    PILATES("Pilates"),
-    AEROBICS("Aerobics"),
-    STRENGTH_TRAINING("Strength Training"),
-    CARDIO("Cardio");
+@Table(name = "training_type")
+public class TrainingType {
+//    YOGA,
+//    PILATES,
+//    AEROBICS,
+//    WORKOUT,
+//    CARDIO;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_training_type", nullable = false)
+    private int id;
 
-    private final String trainingTypeName;
+    @Column(name = "training_type_name", nullable = false, length = 50)
+    private String trainingTypeName;
+
 }

@@ -1,72 +1,112 @@
 package org.edu.fpm.gym;
 
-import org.edu.fpm.gym.entity.Trainee;
-import org.edu.fpm.gym.entity.Trainer;
-import org.edu.fpm.gym.entity.Training;
-import org.edu.fpm.gym.service.TraineeService;
-import org.edu.fpm.gym.service.TrainerService;
-import org.edu.fpm.gym.service.TrainingService;
+import org.edu.fpm.gym.entity.*;
+import org.edu.fpm.gym.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Component
 public class GymFacade {
     private final TrainerService trainerService;
     private final TraineeService traineeService;
     private final TrainingService trainingService;
+    private final UserService userService;
+    private final TrainingTypeService trainingTypeService;
 
     @Autowired
-    public GymFacade(TrainerService trainerService, TraineeService traineeService, TrainingService trainingService) {
+    public GymFacade(TrainerService trainerService, TraineeService traineeService, TrainingService trainingService, UserService userService, TrainingTypeService trainingTypeService) {
         this.trainerService = trainerService;
         this.traineeService = traineeService;
         this.trainingService = trainingService;
+        this.userService = userService;
+        this.trainingTypeService = trainingTypeService;
     }
-    public String getAllTrainees(){
-        return traineeService.getAllTrainees();
-    }
-    public Trainee createTrainee(Trainee trainee) {
-        return traineeService.createTrainee(trainee);
-    }
-
-    public Trainee updateTrainee(Trainee trainee) {
-        return traineeService.updateTrainee(trainee);
+    //Trainer
+    public String createTrainerProfile(Trainer trainer) {
+        return trainerService.createTrainer(trainer).toString();
     }
 
-    public void deleteTrainee(Long id) {
-        traineeService.deleteTrainee(id);
+    public Trainer getTrainerProfileByUsername(String username) {
+        return trainerService.getTrainerByUsername(username);
     }
 
-    public Trainee getTraineeById(Long id) {
-        return traineeService.getTraineeById(id);
+    public void updateTrainerProfile(Trainer trainer) {
+        trainerService.updateTrainerProfile(trainer);
     }
 
-    // Методи для Trainer
-    public String getAllTrainers(){
-        return trainerService.getAllTrainers();
+    public void activateTrainer(String username) {
+        trainerService.switchTrainerActivation(username);
     }
 
-    public Trainer createTrainer(Trainer trainer) {
-        return trainerService.createTrainer(trainer);
+    public void changePasswordTrainer(String username, String password) {
+        trainerService.changeTrainerPassword(username, password);
     }
 
-    public Trainer updateTrainer(Trainer trainer) {
-        return trainerService.updateTrainer(trainer);
+    public void deleteTrainerProfile(String username) {
+        trainerService.deleteTrainer(username);
     }
 
-    public Trainer getTrainerById(Long id) {
-        return trainerService.getTrainerById(id);
+    public List<Trainer> getTraineeTrainings(String traineeUsername) {
+        return trainerService.getAvailableTrainersForTrainee(traineeUsername);
     }
 
-    // Методи для Training
-    public String getAllTrainings(){
-        return trainingService.getAllTrainings();
+    // Trainee
+    public String createTraineeProfile(Trainee trainee) {
+        return traineeService.createTrainee(trainee).toString();
     }
 
-    public Training createTraining(Training training) {
-        return trainingService.createTraining(training);
+    public Trainee getTraineeProfileByUsername(String username) {
+        return traineeService.getTraineeByUsername(username);
     }
 
-    public Training getTrainingById(Long id) {
-        return trainingService.getTrainingById(id);
+    public void updateTraineeProfile(Trainee trainee) {
+        traineeService.updateTraineeProfile(trainee);
+    }
+
+    public void activateTrainee(String username) {
+        traineeService.switchTraineeActivation(username);
+    }
+
+    public void changePasswordTrainee(String username, String password) {
+        traineeService.changeTraineePassword(username, password);
+    }
+
+    public void deleteTraineeByUsername(String username){
+        traineeService.deleteTraineeByUsername(username);
+    }
+
+    public List<Training> getTrainingsByTrainee(String traineeUsername, LocalDate fromDate, LocalDate toDate, String trainerName, TrainingType trainingType) {
+        return traineeService.getTraineeTrainings(traineeUsername, fromDate, toDate, trainerName, trainingType);
+    }
+
+    // Training
+    public String addTraining(Training training) {
+        return trainingService.createTraining(training).toString();
+    }
+
+    public List<Training> getTraineeTrainings(Long traineeId) {
+        return trainingService.getTrainingsByTrainee(traineeId);
+    }
+
+    public List<Training> getTrainerTrainings(Long traineeId) {
+        return trainingService.getTrainingsByTrainer(traineeId);
+    }
+
+    //User
+    public User createUser(User user){
+        userService.createUser(user);
+        return user;
+    }
+
+    //TrainingType
+    public TrainingType addTrainingType(TrainingType trainingType) {
+        return trainingTypeService.createTrainingType(trainingType);
+    }
+
+    public TrainingType findTrainingTypeByName(String name) {
+        return trainingTypeService.findTrainingTypeByName(name);
     }
 }

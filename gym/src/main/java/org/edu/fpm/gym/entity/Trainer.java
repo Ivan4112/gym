@@ -1,35 +1,47 @@
 package org.edu.fpm.gym.entity;
 
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
+import java.util.HashSet;
+import java.util.Set;
+
+//@SuperBuilder
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-public class Trainer extends User{
-    private String specialization;
-    private Long userId;
+@Entity
+@Table(name = "trainer")
+public class Trainer {
+    @Id
+    @Column(name = "id_trainer", nullable = false)
+    private Integer id;
 
-    public Trainer(Long userId, String firstName,
-                   String lastName, String username,
-                   String password, boolean isActive, String specialization) {
-        super(firstName, lastName, username, password, isActive);
-        this.userId = userId;
-        this.specialization = specialization;
-    }
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    public Trainer() {
-    }
+    @ManyToOne
+    @JoinColumn(name = "specialization", nullable = false)
+    private TrainingType specialization;
 
-    @Override
-    public String toString() {
-        return "Trainer{" +
-                ", userId=" + userId + '\'' +
-                ", firstName='" + getFirstName() + '\'' +
-                ", lastName='" + getLastName() + '\'' +
-                ", username='" + getUsername() + '\'' +
-                ", password='" + getPassword() + '\'' +
-                ", isActive='" + isActive() + '\'' +
-                "specialization='" + specialization +
-                '}';
-    }
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
+//    private TrainingType specialization;
+
+    @ManyToMany
+    @JoinTable(
+            name = "trainee_trainer",
+            joinColumns = @JoinColumn(name = "trainer_id"),
+            inverseJoinColumns = @JoinColumn(name = "trainee_id")
+    )
+    private Set<Trainee> trainees = new HashSet<>();
 }

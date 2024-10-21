@@ -1,19 +1,22 @@
 package org.edu.fpm.gym.service;
 
-import org.edu.fpm.gym.dao.TraineeDao;
+import lombok.extern.slf4j.Slf4j;
 import org.edu.fpm.gym.entity.Trainee;
+import org.edu.fpm.gym.entity.Training;
+import org.edu.fpm.gym.entity.TrainingType;
+import org.edu.fpm.gym.repository.TraineeRepository;
 import org.edu.fpm.gym.security.SecurityCredential;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
+@Slf4j
 public class TraineeService {
-    private static final Logger logger = LoggerFactory.getLogger(TraineeService.class);
-    private TraineeDao traineeDao;
+    @Autowired
+    private TraineeRepository traineeRepository;
 
     private SecurityCredential securityCredential;
 
@@ -22,39 +25,41 @@ public class TraineeService {
         this.securityCredential = securityCredential;
     }
 
-    @Autowired
-    public void setTraineeDao(TraineeDao traineeDao) {
-        this.traineeDao = traineeDao;
-    }
-
-    public Trainee createTrainee(String firstName, String lastName, LocalDate dateOfBirth, String address) {
-        Long newId = traineeDao.generateNewId();
-
-        String username = securityCredential.generateUsername(firstName, lastName, newId);
-        String password = securityCredential.generatePassword();
-
-        Trainee newTrainee = new Trainee(newId, firstName, lastName, username, password, true, dateOfBirth, address);
-        return traineeDao.save(newTrainee);
-    }
-
     public Trainee createTrainee(Trainee trainee) {
-        return traineeDao.save(trainee);
+        trainee.getUser().setUsername(securityCredential.generateUsername(
+                trainee.getUser().getFirstName(),
+                trainee.getUser().getLastName(),
+                trainee.getUser().getId())
+        );
+        trainee.getUser().setPassword(securityCredential.generatePassword());
+        return traineeRepository.save(trainee);
     }
 
-    public Trainee updateTrainee(Trainee trainee) {
-        return traineeDao.update(trainee);
+    public Trainee getTraineeByUsername(String username) {
+        return traineeRepository.findByUsername(username);
     }
 
-    public void deleteTrainee(Long id) {
-        traineeDao.delete(id);
+    public void updateTraineeProfile(Trainee trainee) {
+        traineeRepository.updateTrainee(trainee);
     }
 
-    public Trainee getTraineeById(Long id) {
-        return traineeDao.findById(id);
+    public void deleteTraineeByUsername(String username) {
+        traineeRepository.deleteByUsername(username);
     }
 
-    public String getAllTrainees() {
-        logger.info("Retrieving all trainees");
-        return traineeDao.findAll();
+    public void changeTraineePassword(String username, String newPassword) {
+        traineeRepository.changePassword(username, newPassword);
+    }
+
+    public void switchTraineeActivation(String username) {
+        traineeRepository.switchActivation(username);
+    }
+
+    public List<Training> getTraineeTrainings(String username, LocalDate fromDate, LocalDate toDate, String trainerName, TrainingType trainingType) {
+        return traineeRepository.getTraineeTrainings(username, fromDate, toDate, trainerName, trainingType);
+    }
+
+    public boolean existsByFullName(String firstName, String lastName) {
+        return traineeRepository.findByFirstNameAndLastName(firstName, lastName).isPresent();
     }
 }

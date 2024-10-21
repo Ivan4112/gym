@@ -1,32 +1,30 @@
 package org.edu.fpm.gym.service;
 
-import org.edu.fpm.gym.dao.TrainingDao;
+import lombok.extern.slf4j.Slf4j;
 import org.edu.fpm.gym.entity.Training;
+import org.edu.fpm.gym.repository.TrainingRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Service
-public class TrainingService {
-    private static final Logger logger = LoggerFactory.getLogger(TrainingService.class);
-    private TrainingDao trainingDao;
+import java.util.List;
 
+@Service
+@Slf4j
+public class TrainingService {
     @Autowired
-    public void setTrainingDao(TrainingDao trainingDao) {
-        this.trainingDao = trainingDao;
-    }
+    private TrainingRepository trainingRepository;
 
     public Training createTraining(Training training) {
-        return trainingDao.save(training);
+        return trainingRepository.save(training);
     }
 
-    public Training getTrainingById(Long id) {
-        return trainingDao.findById(id);
+    public List<Training> getTrainingsByTrainee(Long traineeId) {
+        return trainingRepository.findByTraineeId(traineeId);
     }
 
-    public String getAllTrainings() {
-        logger.info("Retrieving all trainings");
-        return trainingDao.findAll();
+    public List<Training> getTrainingsByTrainer(Long trainerId) {
+        return trainingRepository.findByTrainerId(trainerId);
     }
 }

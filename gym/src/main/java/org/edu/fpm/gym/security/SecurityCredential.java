@@ -1,33 +1,27 @@
 package org.edu.fpm.gym.security;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.edu.fpm.gym.storage.TraineeStorage;
-import org.edu.fpm.gym.storage.TrainerStorage;
+import org.edu.fpm.gym.service.TraineeService;
+import org.edu.fpm.gym.service.TrainerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SecurityCredential {
 
-    TraineeStorage traineeStorage;
-    TrainerStorage trainerStorage;
+    TraineeService traineeService;
+    TrainerService trainerService;
 
     @Autowired
-    public void setTraineeStorage(TraineeStorage traineeStorage) {
-        this.traineeStorage = traineeStorage;
+    public SecurityCredential(TraineeService traineeService, TrainerService trainerService) {
+        this.traineeService = traineeService;
+        this.trainerService = trainerService;
     }
 
-    @Autowired
-    public void setTrainerStorage(TrainerStorage trainerStorage) {
-        this.trainerStorage = trainerStorage;
-    }
+    public String generateUsername(String firstName, String lastName, Integer id) {
+        var existsTrainee = traineeService.existsByFullName(firstName, lastName);
 
-    public String generateUsername(String firstName, String lastName, Long id) {
-        var existsTrainee = traineeStorage.getTrainees().values().stream()
-                .anyMatch(trainee -> trainee.getFirstName().equals(firstName) && trainee.getLastName().equals(lastName));
-
-        var existsTrainer = trainerStorage.getTrainers().values().stream()
-                .anyMatch(trainee -> trainee.getFirstName().equals(firstName) && trainee.getLastName().equals(lastName));
+        var existsTrainer = trainerService.existsByFullName(firstName, lastName);
 
         if (existsTrainee || existsTrainer) {
             return firstName + "." + lastName + id;
