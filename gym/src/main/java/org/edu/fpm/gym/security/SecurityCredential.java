@@ -13,8 +13,11 @@ public class SecurityCredential {
     TrainerService trainerService;
 
     @Autowired
-    public SecurityCredential(TraineeService traineeService, TrainerService trainerService) {
+    public void setTraineeService(TraineeService traineeService) {
         this.traineeService = traineeService;
+    }
+    @Autowired
+    public void setTrainerService(TrainerService trainerService) {
         this.trainerService = trainerService;
     }
 

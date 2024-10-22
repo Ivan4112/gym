@@ -15,7 +15,7 @@ import java.util.List;
 @Service
 @Slf4j
 public class TraineeService {
-    @Autowired
+
     private TraineeRepository traineeRepository;
 
     private SecurityCredential securityCredential;
@@ -23,6 +23,10 @@ public class TraineeService {
     @Autowired
     public void setSecurityCredential(SecurityCredential securityCredential) {
         this.securityCredential = securityCredential;
+    }
+    @Autowired
+    public void setTraineeRepository(TraineeRepository traineeRepository) {
+        this.traineeRepository = traineeRepository;
     }
 
     public Trainee createTrainee(Trainee trainee) {

@@ -12,7 +12,6 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.util.HashSet;
 import java.util.Set;
 
-//@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -24,7 +23,7 @@ public class Trainer {
     @Column(name = "id_trainer", nullable = false)
     private Integer id;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @OneToOne(fetch = FetchType.EAGER, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
