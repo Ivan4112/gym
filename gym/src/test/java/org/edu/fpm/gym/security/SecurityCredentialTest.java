@@ -1,61 +1,60 @@
-//package org.edu.fpm.gym.security;
-//
-//import org.edu.fpm.gym.storage.TraineeStorage;
-//import org.edu.fpm.gym.storage.TrainerStorage;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.MockitoAnnotations;
-//
-//import java.time.LocalDate;
-//import java.util.HashMap;
-//import java.util.Map;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.Mockito.when;
-//
-//class SecurityCredentialTest {
-//
-//    @Mock
-//    TrainerStorage trainerStorage;
-//    @Mock
-//    TraineeStorage traineeStorage;
-//    @InjectMocks
-//    SecurityCredential securityCredential;
-//
-//    @BeforeEach
-//    void setUp() {
-//        MockitoAnnotations.openMocks(this);
-//    }
-//
-//    @Test
-//    void generateUsername_ShouldReturnUserNameByConcatenatingNameAndLastName_Test() {
-//        when(traineeStorage.getTrainees()).thenReturn(new HashMap<>());
-//        when(trainerStorage.getTrainers()).thenReturn(new HashMap<>());
-//
-//        String username = securityCredential.generateUsername("John", "Doe", 1L);
-//        assertEquals("John.Doe", username);
-//    }
-//
-//    @Test
-//    public void generateUsername_ShouldReturnUniqUsernameIfSuchUsernameAlreadyExisting_Test() {
-//        Map<Long, Trainee> trainees = new HashMap<>();
-//        Trainee existingTrainee = new Trainee(1L, "John", "Doe", "john.doe", "pass",
-//                true, LocalDate.of(2000, 1, 1), "123 Main St");
-//        trainees.put(1L, existingTrainee);
-//
-//        when(traineeStorage.getTrainees()).thenReturn(trainees);
-//        when(trainerStorage.getTrainers()).thenReturn(new HashMap<>());
-//
-//        String username = securityCredential.generateUsername("John", "Doe", 2L);
-//        assertEquals("John.Doe2", username);
-//    }
-//
-//    @Test
-//    void generatePassword_Test() {
-//        String password = securityCredential.generatePassword();
-//        assertNotNull(password);
-//        assertEquals(10, password.length());
-//    }
-//}
+package org.edu.fpm.gym.security;
+
+import org.edu.fpm.gym.service.TraineeService;
+import org.edu.fpm.gym.service.TrainerService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
+class SecurityCredentialTest {
+
+    @Mock
+    private TraineeService traineeService;
+
+    @Mock
+    private TrainerService trainerService;
+
+    @InjectMocks
+    private SecurityCredential securityCredential;
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void generateUsernameWhenUserDoesNotExist_Test() {
+        String firstName = "John";
+        String lastName = "Doe";
+        Integer id = 1;
+
+        when(traineeService.existsByFullName(firstName, lastName)).thenReturn(false);
+        when(trainerService.existsByFullName(firstName, lastName)).thenReturn(false);
+
+        String result = securityCredential.generateUsername(firstName, lastName, id);
+        assertEquals("John.Doe", result);
+    }
+
+    @Test
+    void generateUsernameWhenUserAlreadyExist_Test() {
+        String firstName = "John";
+        String lastName = "Doe";
+        Integer id = 1;
+
+        when(traineeService.existsByFullName(firstName, lastName)).thenReturn(true);
+        when(trainerService.existsByFullName(firstName, lastName)).thenReturn(false);
+
+        String result = securityCredential.generateUsername(firstName, lastName, id);
+        assertEquals("John.Doe1", result);
+    }
+
+    @Test
+    void generatePassword() {
+
+    }
+}

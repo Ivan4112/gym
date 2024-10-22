@@ -2,9 +2,11 @@ package org.edu.fpm.gym.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "training_type")
 public class TrainingType {
 //    YOGA,
