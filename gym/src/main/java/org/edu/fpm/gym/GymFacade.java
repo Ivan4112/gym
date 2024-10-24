@@ -52,12 +52,16 @@ public class GymFacade {
     public List<Trainer> getTraineeTrainings(String traineeUsername) {
         return trainerService.getAvailableTrainersForTrainee(traineeUsername);
     }
-
+    public List<Training> getTrainingsForTrainer(String username, LocalDate fromDate, LocalDate toDate, String traineeName){
+        return trainerService.getTrainingsForTrainer(username, fromDate, toDate, traineeName);
+    }
     // Trainee
     public String createTraineeProfile(Trainee trainee) {
         return traineeService.createTrainee(trainee).toString();
     }
-
+    public void updateTrainerProfile(Trainee trainee) {
+        traineeService.updateTraineeProfile(trainee);
+    }
     public Trainee getTraineeProfileByUsername(String username) {
         return traineeService.getTraineeByUsername(username);
     }

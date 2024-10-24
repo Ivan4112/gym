@@ -1,31 +1,31 @@
 package org.edu.fpm.gym.service;
 
 import org.edu.fpm.gym.entity.Trainer;
+import org.edu.fpm.gym.entity.Training;
 import org.edu.fpm.gym.entity.TrainingType;
 import org.edu.fpm.gym.entity.User;
 import org.edu.fpm.gym.repository.TrainerRepository;
-import org.edu.fpm.gym.security.SecurityCredential;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class TrainerServiceTest {
     @Mock
     private TrainerRepository trainerRepository;
-
-    @Mock
-    private SecurityCredential securityCredential;
 
     @InjectMocks
     private TrainerService trainerService;
@@ -34,7 +34,6 @@ class TrainerServiceTest {
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
 
         trainer = new Trainer();
         trainer.setUser(new User());
@@ -50,20 +49,12 @@ class TrainerServiceTest {
 
     @Test
     void createTrainer_Test() {
-        String username = "John.Doe";
-        String password = "password123";
-        when(securityCredential.generateUsername(trainer.getUser().getFirstName(),
-                trainer.getUser().getLastName(),
-                trainer.getUser().getId())).thenReturn(username);
-        when(securityCredential.generatePassword()).thenReturn(password);
+        String username = "john.doe";
+        String password = "testPassword";
         when(trainerRepository.save(trainer)).thenReturn(trainer);
 
         Trainer createdTrainer = trainerService.createTrainer(trainer);
 
-        verify(securityCredential).generateUsername(trainer.getUser().getFirstName(),
-                trainer.getUser().getLastName(),
-                trainer.getUser().getId());
-        verify(securityCredential).generatePassword();
         verify(trainerRepository).save(trainer);
         assertEquals(username, trainer.getUser().getUsername());
         assertEquals(password, trainer.getUser().getPassword());
@@ -74,16 +65,16 @@ class TrainerServiceTest {
     void getTrainerByUsername_Test() {
         String username = "John.Doe";
 
-        when(trainerRepository.findByUsername(username)).thenReturn(trainer);
+        when(trainerRepository.findTrainerByUser_Username(username)).thenReturn(trainer);
         Trainer foundTrainer = trainerService.getTrainerByUsername(username);
-        verify(trainerRepository).findByUsername(username);
+        verify(trainerRepository).findTrainerByUser_Username(username);
         assertEquals(trainer, foundTrainer);
     }
 
     @Test
     void updateTrainerProfile_Test() {
         trainerService.updateTrainerProfile(trainer);
-        verify(trainerRepository).updateTrainer(trainer);
+        verify(trainerRepository).updateTrainerByUserUsername(trainer);
     }
 
     @Test
@@ -108,7 +99,7 @@ class TrainerServiceTest {
         String username = "John.Doe";
 
         trainerService.deleteTrainer(username);
-        verify(trainerRepository).deleteByUsername(username);
+        verify(trainerRepository).deleteTrainerByUser_Username(username);
     }
 
     @Test
@@ -124,14 +115,23 @@ class TrainerServiceTest {
     }
 
     @Test
-    void existsByFullName_Test() {
-        String firstName = "John";
-        String lastName = "Doe";
-        when(trainerRepository.findByFirstNameAndLastName(firstName, lastName)).thenReturn(Optional.of(trainer));
+    void getTrainingsForTrainer_Test() {
+        String username = "trainer.username";
+        LocalDate fromDate = LocalDate.now().minusDays(7);
+        LocalDate toDate = LocalDate.now();
+        String traineeName = "trainee.username";
 
-        boolean exists = trainerService.existsByFullName(firstName, lastName);
+        Training training1 = new Training();
+        Training training2 = new Training();
+        List<Training> expectedTrainings = List.of(training1, training2);
 
-        verify(trainerRepository).findByFirstNameAndLastName(firstName, lastName);
-        assertTrue(exists);
+        when(trainerRepository.getTrainingsForTrainer(username, fromDate, toDate, traineeName))
+                .thenReturn(expectedTrainings);
+
+        List<Training> actualTrainings = trainerService.getTrainingsForTrainer(username, fromDate, toDate, traineeName);
+
+        assertNotNull(actualTrainings);
+        assertEquals(expectedTrainings.size(), actualTrainings.size());
+        assertEquals(expectedTrainings, actualTrainings);
     }
 }

@@ -1,10 +1,9 @@
 package org.edu.fpm.gym.service;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.edu.fpm.gym.entity.Training;
 import org.edu.fpm.gym.repository.TrainingRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,9 +11,15 @@ import java.util.List;
 
 @Service
 @Slf4j
+@Transactional
 public class TrainingService {
+
+    private final TrainingRepository trainingRepository;
+
     @Autowired
-    private TrainingRepository trainingRepository;
+    public TrainingService(TrainingRepository trainingRepository) {
+        this.trainingRepository = trainingRepository;
+    }
 
     public Training createTraining(Training training) {
         return trainingRepository.save(training);

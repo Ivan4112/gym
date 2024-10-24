@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -20,8 +19,9 @@ import java.util.Set;
 @Table(name = "trainer")
 public class Trainer {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_trainer", nullable = false)
-    private Integer id;
+    private Long id;
 
     @OneToOne(fetch = FetchType.EAGER, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -29,12 +29,8 @@ public class Trainer {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "specialization", nullable = false)
+    @JoinColumn(name = "specialization_id", nullable = false)
     private TrainingType specialization;
-
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
-//    private TrainingType specialization;
 
     @ManyToMany
     @JoinTable(

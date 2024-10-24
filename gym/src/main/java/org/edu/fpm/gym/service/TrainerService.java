@@ -1,44 +1,38 @@
 package org.edu.fpm.gym.service;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.edu.fpm.gym.entity.Trainer;
+import org.edu.fpm.gym.entity.Training;
 import org.edu.fpm.gym.repository.TrainerRepository;
-import org.edu.fpm.gym.security.SecurityCredential;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
 @Slf4j
+@Transactional
 public class TrainerService {
 
-    @Autowired
-    private TrainerRepository trainerRepository;
-
-    private SecurityCredential securityCredential;
+    private final TrainerRepository trainerRepository;
 
     @Autowired
-    public void setSecurityCredential(SecurityCredential securityCredential) {
-        this.securityCredential = securityCredential;
+    public TrainerService(TrainerRepository trainerRepository) {
+        this.trainerRepository = trainerRepository;
     }
 
     public Trainer createTrainer(Trainer trainer) {
-        trainer.getUser().setUsername(securityCredential.generateUsername(
-                trainer.getUser().getFirstName(),
-                trainer.getUser().getLastName(),
-                trainer.getUser().getId())
-        );
-        trainer.getUser().setPassword(securityCredential.generatePassword());
         return trainerRepository.save(trainer);
     }
 
     public Trainer getTrainerByUsername(String username) {
-        return trainerRepository.findByUsername(username);
+        return trainerRepository.findTrainerByUser_Username(username);
     }
 
     public void updateTrainerProfile(Trainer trainer) {
-        trainerRepository.updateTrainer(trainer);
+        trainerRepository.updateTrainerByUserUsername(trainer);
     }
 
     public void changeTrainerPassword(String username, String newPassword) {
@@ -50,14 +44,14 @@ public class TrainerService {
     }
 
     public void deleteTrainer(String username) {
-        trainerRepository.deleteByUsername(username);
+        trainerRepository.deleteTrainerByUser_Username(username);
     }
 
     public List<Trainer> getAvailableTrainersForTrainee(String traineeUsername) {
         return trainerRepository.findAvailableTrainersForTrainee(traineeUsername);
     }
 
-    public boolean existsByFullName(String firstName, String lastName) {
-        return trainerRepository.findByFirstNameAndLastName(firstName, lastName).isPresent();
+    public List<Training> getTrainingsForTrainer(String username, LocalDate fromDate, LocalDate toDate, String traineeName) {
+        return trainerRepository.getTrainingsForTrainer(username, fromDate, toDate, traineeName);
     }
 }

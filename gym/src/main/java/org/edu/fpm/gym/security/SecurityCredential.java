@@ -1,40 +1,48 @@
 package org.edu.fpm.gym.security;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.edu.fpm.gym.service.TraineeService;
-import org.edu.fpm.gym.service.TrainerService;
+import org.edu.fpm.gym.entity.User;
+import org.edu.fpm.gym.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class SecurityCredential {
 
-    TraineeService traineeService;
-    TrainerService trainerService;
+    UserService userService;
 
     @Autowired
-    public void setTraineeService(TraineeService traineeService) {
-        this.traineeService = traineeService;
-    }
-    @Autowired
-    public void setTrainerService(TrainerService trainerService) {
-        this.trainerService = trainerService;
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
-    public String generateUsername(String firstName, String lastName, Integer id) {
-        var existsTrainee = traineeService.existsByFullName(firstName, lastName);
+    public String generateUsername(String firstName, String lastName) {
+        String baseUsername = firstName + "." + lastName;
+        String username = baseUsername;
+        int suffix = 1;
 
-        var existsTrainer = trainerService.existsByFullName(firstName, lastName);
+        while (userService.existsUserByUsername(username)) {
+            username = baseUsername + suffix++;
+        }
 
-        if (existsTrainee || existsTrainer) {
-            return firstName + "." + lastName + id;
-        } else {
-            return firstName + "." + lastName;
+        return username;
+    }
+
+    public void updatePassword(String username, String newPassword) {
+        User user = userService.findUserByUsername(username);
+        if (user != null) {
+            log.info("Username: " + user.getUsername());
+            user.setPassword(newPassword);
+            userService.updateUser(user);
+        }else {
+            log.error("user not found");
         }
     }
 
+
     public String generatePassword() {
-        int passwordLength = 10;
-        return RandomStringUtils.randomAlphanumeric(passwordLength);
+        return RandomStringUtils.randomAlphanumeric(10);
     }
 }

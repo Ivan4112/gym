@@ -2,16 +2,17 @@ package org.edu.fpm.gym.service;
 
 import org.edu.fpm.gym.entity.TrainingType;
 import org.edu.fpm.gym.repository.TrainingTypeRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class TrainingTypeServiceTest {
     @Mock
     private TrainingTypeRepository trainingTypeRepository;
@@ -19,10 +20,6 @@ class TrainingTypeServiceTest {
     @InjectMocks
     private TrainingTypeService trainingTypeService;
 
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
     @Test
     void createTrainingType_Test() {
         TrainingType trainingType = new TrainingType();
@@ -41,10 +38,10 @@ class TrainingTypeServiceTest {
         TrainingType trainingType = new TrainingType();
         trainingType.setTrainingTypeName(trainingTypeName);
 
-        when(trainingTypeRepository.findTrainingTypeByName(trainingTypeName)).thenReturn(trainingType);
+        when(trainingTypeRepository.findTrainingTypeByTrainingTypeName(trainingTypeName)).thenReturn(trainingType);
         TrainingType result = trainingTypeService.findTrainingTypeByName(trainingTypeName);
 
-        verify(trainingTypeRepository).findTrainingTypeByName(trainingTypeName);
+        verify(trainingTypeRepository).findTrainingTypeByTrainingTypeName(trainingTypeName);
         assertEquals(trainingType, result);
     }
 }

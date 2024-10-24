@@ -20,7 +20,7 @@ public class Trainee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_trainee", nullable = false)
-    private Integer id;
+    private Long id;
 
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;

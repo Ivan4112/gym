@@ -1,5 +1,0 @@
-1,1,Cardio Session,CARDIO,2024-10-10,30
-2,1,Yoga Basics,YOGA,2024-10-11,60
-3,2,Pilates Advanced,PILATES,2024-10-12,45
-4,3,Strength Training,STRENGTH_TRAINING,2024-10-13,90
-5,4,Aerobics Intro,AEROBICS,2024-10-14,50

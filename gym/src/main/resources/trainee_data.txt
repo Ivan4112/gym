@@ -1,5 +1,0 @@
-1,John,Doe,johndoe,password123,true,1990-05-12,123 Main St
-2,Jane,Smith,janesmith,password123,true,1992-08-17,456 Elm St
-3,Bob,Johnson,bobjohnson,password123,true,1985-03-30,789 Oak St
-4,Alice,Williams,alicewilliams,password123,false,1998-09-25,321 Pine St
-5,Mike,Brown,mikebrown,password123,false,1983-11-15,654 Maple St

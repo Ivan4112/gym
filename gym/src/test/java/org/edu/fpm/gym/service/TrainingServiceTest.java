@@ -2,19 +2,20 @@ package org.edu.fpm.gym.service;
 
 import org.edu.fpm.gym.entity.Training;
 import org.edu.fpm.gym.repository.TrainingRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class TrainingServiceTest {
     @Mock
     private TrainingRepository trainingRepository;
@@ -22,15 +23,10 @@ class TrainingServiceTest {
     @InjectMocks
     private TrainingService trainingService;
 
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Test
     void createTraining_Test() {
         Training training = new Training();
-        training.setId(1);
+        training.setId(1L);
 
         when(trainingRepository.save(training)).thenReturn(training);
         Training result = trainingService.createTraining(training);
@@ -43,7 +39,7 @@ class TrainingServiceTest {
     void getTrainingsByTrainee_Test() {
         Long traineeId = 1L;
         Training training = new Training();
-        training.setId(1);
+        training.setId(1L);
         List<Training> expectedTrainings = Collections.singletonList(training);
 
         when(trainingRepository.findByTraineeId(traineeId)).thenReturn(expectedTrainings);
@@ -57,7 +53,7 @@ class TrainingServiceTest {
     void getTrainingsByTrainer_Test() {
         Long trainerId = 1L;
         Training training = new Training();
-        training.setId(1);
+        training.setId(1L);
         List<Training> expectedTrainings = Collections.singletonList(training);
 
         when(trainingRepository.findByTrainerId(trainerId)).thenReturn(expectedTrainings);
