@@ -1,16 +1,11 @@
 package org.edu.fpm.gym;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@Configuration
-@ComponentScan(basePackages = "org.edu.fpm")
-@Slf4j
+@SpringBootApplication
 public class GymApplication {
-
     public static void main(String[] args) {
-        new AnnotationConfigApplicationContext(GymApplication.class);
+        SpringApplication.run(GymApplication.class, args);
     }
 }

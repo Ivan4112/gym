@@ -1,0 +1,10 @@
+{
+  "dateOfBirth": "1995-08-15",
+  "address": "123 Main St, Anytown",
+  "user": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "username": "John.Doe",
+    "isActive": true
+  }
+}

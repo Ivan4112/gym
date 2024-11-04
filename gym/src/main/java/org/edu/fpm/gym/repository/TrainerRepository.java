@@ -17,16 +17,12 @@ public interface TrainerRepository extends JpaRepository<Trainer, Long> {
     Trainer findTrainerByUser_Username(String username);
     @Modifying
     @Query("UPDATE Trainer t SET t = :trainer WHERE t.user.username = :username")
-    void updateTrainerByUserUsername(Trainer trainer);
-
-    @Modifying
-    @Query("UPDATE Trainer t SET t.user.password = :newPassword WHERE t.user.username = :username")
-    void changePassword(String username, String newPassword);
+    Trainer updateTrainerByUserUsername(@Param("username") String username, @Param("trainer") Trainer trainer);
 
     @Modifying
     @Transactional
-    @Query("UPDATE Trainer t SET t.user.isActive = CASE WHEN t.user.isActive = true THEN false ELSE true END WHERE t.user.username = :username")
-    void switchActivation(@Param("username") String username);
+    @Query("UPDATE Trainer t SET t.user.isActive = :isActive WHERE t.user.username = :username")
+    void switchActivation(@Param("username") String username, @Param("isActive") boolean isActive);
 
     void deleteTrainerByUser_Username(String username);
 
