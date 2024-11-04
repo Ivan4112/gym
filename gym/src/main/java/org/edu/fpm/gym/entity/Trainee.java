@@ -3,6 +3,7 @@ package org.edu.fpm.gym.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -12,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 @Entity
@@ -28,15 +30,16 @@ public class Trainee {
     @Column(name = "address")
     private String address;
 
-    @OneToOne(fetch = FetchType.EAGER, optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToMany(mappedBy = "trainees")
+    @ManyToMany
+    @JoinTable(
+            name = "trainee_trainer",
+            joinColumns = @JoinColumn(name = "trainee_id"),
+            inverseJoinColumns = @JoinColumn(name = "trainer_id")
+    )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Trainer> trainers = new HashSet<>();
-
-    public Trainee() {
-
-    }
 }

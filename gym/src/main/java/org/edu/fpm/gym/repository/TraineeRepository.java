@@ -19,16 +19,12 @@ public interface TraineeRepository extends JpaRepository<Trainee, Long> {
 
     @Modifying
     @Query("UPDATE Trainee t SET t = :trainee WHERE t.user.username = :username")
-    Trainee updateTraineeByUserUsername(Trainee trainee);
-
-    @Modifying
-    @Query("UPDATE Trainee t SET t.user.password = :newPassword WHERE t.user.username = :username")
-    void changePassword(@Param("username") String username, @Param("newPassword") String newPassword);
+    void updateTraineeByUserUsername(@Param("username") String username, @Param("trainee") Trainee trainee);
 
     @Modifying
     @Transactional
-    @Query("UPDATE Trainee t SET t.user.isActive = CASE WHEN t.user.isActive = true THEN false ELSE true END WHERE t.user.username = :username")
-    void switchActivation(@Param("username") String username);
+    @Query("UPDATE Trainee t SET t.user.isActive = :isActive WHERE t.user.username = :username")
+    void switchActivation(@Param("username") String username, @Param("isActive") boolean isActive);
 
     void deleteTraineeByUser_Username(String username);
 
