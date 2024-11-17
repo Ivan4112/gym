@@ -81,6 +81,72 @@ class UserServiceTest {
         assertNotNull(generatedPassword);
         assertEquals(10, generatedPassword.length());
     }
+    @Test
+    void createUser_Test() {
+        userService.createUser(user);
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void generateUsername_NewUsername_Test() {
+        String firstName = "John";
+        String lastName = "Doe";
+        String expectedUsername = "John.Doe";
+
+        when(userRepository.findByUsername(expectedUsername)).thenReturn(Optional.empty());
+
+        String generatedUsername = userService.generateUsername(firstName, lastName);
+
+        assertEquals(expectedUsername, generatedUsername);
+    }
+
+    @Test
+    void generateUsername_ExistingUsername_Test() {
+        String firstName = "John";
+        String lastName = "Doe";
+        String baseUsername = "John.Doe";
+        String expectedUsername = "John.Doe1";
+
+        when(userRepository.findByUsername(baseUsername)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(expectedUsername)).thenReturn(Optional.empty());
+
+        String generatedUsername = userService.generateUsername(firstName, lastName);
+
+        assertEquals(expectedUsername, generatedUsername);
+    }
+
+    @Test
+    void updateUserPassword_UserExists_Test() {
+        String username = "john.doe";
+        String newPassword = "newpassword123";
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+
+        userService.updateUserPassword(username, newPassword);
+
+        assertEquals(newPassword, user.getPassword());
+        verify(userRepository, times(1)).saveAndFlush(user);
+    }
+
+    @Test
+    void updateUserPassword_UserNotFound_Test() {
+        String username = "john.doe";
+        String newPassword = "newpassword123";
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+
+        userService.updateUserPassword(username, newPassword);
+
+        verify(userRepository, never()).saveAndFlush(user);
+    }
+
+    @Test
+    void generatePassword_Test() {
+        String generatedPassword = userService.generatePassword();
+
+        assertNotNull(generatedPassword);
+        assertEquals(10, generatedPassword.length());
+    }
 
     @Test
     void existsUserByUsername_UserExists_Test() {
