@@ -9,7 +9,6 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -22,7 +21,7 @@ public class Trainee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_trainee", nullable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
@@ -34,12 +33,7 @@ public class Trainee {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToMany
-    @JoinTable(
-            name = "trainee_trainer",
-            joinColumns = @JoinColumn(name = "trainee_id"),
-            inverseJoinColumns = @JoinColumn(name = "trainer_id")
-    )
+    @ManyToMany(mappedBy = "trainees")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<Trainer> trainers = new HashSet<>();
+    private Set<Trainer> trainers;
 }

@@ -20,7 +20,7 @@ public class Training {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_training", nullable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "training_duration", nullable = false)
     private Integer trainingDuration;

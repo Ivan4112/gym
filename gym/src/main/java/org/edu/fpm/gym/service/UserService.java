@@ -9,8 +9,6 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 @Service
 @Slf4j
 @Transactional
@@ -22,22 +20,14 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    private String generateTransactionId() {
-        return UUID.randomUUID().toString();
-    }
-
     public void createUser(User user) {
-        String transactionId = generateTransactionId();
-        MDC.put("transactionId", transactionId);
-        log.info("Creating user: {}, transaction id:{}", user, transactionId);
+        log.info("Creating user: {}", user);
         userRepository.save(user);
         MDC.clear();
     }
 
     public String generateUsername(String firstName, String lastName) {
-        String transactionId = generateTransactionId();
-        MDC.put("transactionId", transactionId);
-        log.info("Creating login for user: {}, transaction id:{}", firstName, transactionId);
+        log.info("Creating login for user: {}", firstName);
         String baseUsername = firstName + "." + lastName;
         String username = baseUsername;
         int suffix = 1;
@@ -46,45 +36,32 @@ public class UserService {
             username = baseUsername + suffix++;
         }
         log.info("Username successfully generated: {}", username);
-        MDC.clear();
         return username;
     }
 
     public void updateUserPassword(String username, String newPassword) {
-        String transactionId = generateTransactionId();
-        MDC.put("transactionId", transactionId);
-
-        User user = findUserByUsername(username);
+        var user = findUserByUsername(username);
         if (user != null) {
-            log.info("Updating password for user: {}, transactionId:{}", user.getUsername(), transactionId);
+            log.info("Updating password for user: {}", user.getUsername());
             user.setPassword(newPassword);
             updateUser(user);
             log.info("Password successfully updated for user: {}", user.getUsername());
         }else {
             log.error("User not found for username: {}", username);
         }
-        MDC.clear();
     }
-
 
     public String generatePassword() {
         return RandomStringUtils.randomAlphanumeric(10);
     }
 
     public boolean existsUserByUsername(String username) {
-        String transactionId = generateTransactionId();
-        MDC.put("transactionId", transactionId);
         boolean exists = userRepository.findByUsername(username).isPresent();
         log.info("Checking if user exists with username: {}- {}", username, exists ? "found" : "not found");
-        MDC.clear();
         return exists;
     }
 
     public User findUserByUsername(String username) {
-        String transactionId = generateTransactionId();
-        MDC.put("transactionId", transactionId);
-        log.info("Searching user by username: {}, transaction id:{}", username, transactionId);
-        MDC.clear();
         return userRepository.findByUsername(username).orElse(null);
     }
 

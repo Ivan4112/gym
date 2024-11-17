@@ -2,17 +2,27 @@ package org.edu.fpm.gym.service;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.edu.fpm.gym.dto.*;
-import org.edu.fpm.gym.entity.*;
+import org.edu.fpm.gym.dto.trainee.TraineeDTO;
+import org.edu.fpm.gym.dto.trainee.TraineeProfileDTO;
+import org.edu.fpm.gym.dto.trainee.TraineeUpdateProfileDTO;
+import org.edu.fpm.gym.dto.trainer.TrainerDTO;
+import org.edu.fpm.gym.dto.training.TrainingDTO;
+import org.edu.fpm.gym.dto.training.TrainingRequestDTO;
+import org.edu.fpm.gym.dto.user.UserDTO;
+import org.edu.fpm.gym.entity.Trainee;
+import org.edu.fpm.gym.entity.Trainer;
+import org.edu.fpm.gym.entity.Training;
+import org.edu.fpm.gym.metrics.TraineeRepositoryMetrics;
 import org.edu.fpm.gym.repository.TraineeRepository;
-import org.slf4j.MDC;
+import org.edu.fpm.gym.utils.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,108 +32,114 @@ public class TraineeService {
 
     private final TraineeRepository traineeRepository;
 
+    private final TraineeRepositoryMetrics traineeRepositoryMetrics;
+
     private final TrainerService trainerService;
 
+    private final UserService userService;
+
+    private final AuthService authService;
+
     @Autowired
-    public TraineeService(TraineeRepository traineeRepository, TrainerService trainerService) {
+    public TraineeService(TraineeRepository traineeRepository,
+                          TraineeRepositoryMetrics traineeRepositoryMetrics,
+                          TrainerService trainerService, UserService userService, AuthService authService) {
         this.traineeRepository = traineeRepository;
+        this.traineeRepositoryMetrics = traineeRepositoryMetrics;
         this.trainerService = trainerService;
+        this.userService = userService;
+        this.authService = authService;
     }
 
-    private String generateTransactionId() {
-        return UUID.randomUUID().toString();
+    public Trainee createTrainee(@RequestBody TraineeDTO traineeDto) {
+        var user = UserUtils.getUserInstance(
+                traineeDto.user().firstName(),
+                traineeDto.user().lastName(),
+                userService.generateUsername(traineeDto.user().firstName(), traineeDto.user().lastName()),
+                userService.generatePassword(), traineeDto.user().isActive());
+
+        var trainee = new Trainee();
+        trainee.setUser(user);
+        trainee.setAddress(traineeDto.address());
+        trainee.setDateOfBirth(traineeDto.dateOfBirth());
+        user.setTrainees(trainee);
+        traineeRepository.save(trainee);
+        userService.createUser(user);
+
+        log.info("Created trainee with username: {}", traineeDto.user().username());
+
+        return traineeRepositoryMetrics.measureDbConnectionTime(() ->
+                traineeRepositoryMetrics.measureQueryExecutionTime(() ->
+                        traineeRepository.save(trainee)
+                )
+        );
     }
 
-    public Trainee createTrainee(Trainee trainee) {
-        String transactionId = generateTransactionId();
-        MDC.put("transactionId", transactionId);
-        log.info("Transaction started for creating trainee with username: {}", trainee.getUser().getUsername());
-        try {
-            Trainee savedTrainee = traineeRepository.save(trainee);
-            log.info("Transaction {}: Trainee created with username: {}", transactionId, savedTrainee.getUser().getUsername());
-            return savedTrainee;
-        } finally {
-            MDC.clear();
-        }
+    public Trainee getTraineeByUsername(String username, String password) {
+        if (authService.isAuthenticateUser(username, password)) {
+            log.info("Transaction started for fetching trainee with username: {}", username);
+            return traineeRepositoryMetrics.measureQueryExecutionTime(() ->
+                    traineeRepositoryMetrics.measureDataLoadTime(() ->
+                            traineeRepository.findTraineeByUser_Username(username))
+            );
+        } else { throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);}
     }
 
-    public Trainee getTraineeByUsername(String username) {
-        String transactionId = generateTransactionId();
-        MDC.put("transactionId", transactionId);
-        log.info("Transaction started for fetching trainee with username: {}", username);
-        try {
-            Trainee trainee = traineeRepository.findTraineeByUser_Username(username);
-            if (trainee != null) {
-                log.info("Transaction {}: Found trainee with username: {}", transactionId, username);
-            } else {
-                log.info("Transaction {}: Trainee not found with username: {}", transactionId, username);
-            }
-            return trainee;
-        } finally {
-            MDC.clear();
-        }
+    public void deleteTraineeByUsername(String username, String password) {
+        if (authService.isAuthenticateUser(username, password)) {
+            log.info("Transaction started for deleting trainee with username: {}", username);
+            var trainee = traineeRepository.findTraineeByUser_Username(username);
+
+            traineeRepositoryMetrics.measureQueryExecutionTime(() -> {
+                        traineeRepository.delete(trainee);
+                        return null;
+                    }
+            );
+
+        } else { throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);}
     }
 
-    public void deleteTraineeByUsername(String username) {
-        String transactionId = generateTransactionId();
-        MDC.put("deleteTransactionId", transactionId);
-        log.info("Transaction started for deleting trainee with username: {}", username);
-        try {
-            Trainee trainee = traineeRepository.findTraineeByUser_Username(username);
-            if (trainee != null) {
-                log.info("Transaction {}: Trainee found with username: {}", transactionId, username);
-                traineeRepository.delete(trainee);
-                log.info("Transaction {}: Trainee deleted with username: {}", transactionId, username);
-            } else {
-                log.info("Transaction {}: Trainee not found with username: {}", transactionId, username);
-            }
-        } finally {
-            MDC.clear();
-        }
+    public void switchTraineeActivation(String username, boolean isActive, String password) {
+        if (authService.isAuthenticateUser(username, password)) {
+            log.info("Transaction started for switching activation status of trainee with username: {}", username);
+            traineeRepositoryMetrics.measureQueryExecutionTime(() -> {
+                traineeRepository.switchActivation(username, isActive);
+                return null;
+            });
+        } else { throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);}
     }
 
-    public void switchTraineeActivation(String username, boolean isActive) {
-        String transactionId = generateTransactionId();
-        MDC.put("switchTransactionId", transactionId);
-        log.info("Transaction started for switching activation status of trainee with username: {}", username);
-        try {
-            traineeRepository.switchActivation(username, isActive);
-            log.info("Transaction {}: Activation status for trainee with username: {} set to {}", transactionId, username, isActive);
-        } finally {
-            MDC.clear();
-        }
+
+    public List<TrainingDTO> getTraineeTrainings(TrainingRequestDTO trainingRequestDTO) {
+        if (authService.isAuthenticateUser(trainingRequestDTO.username(), trainingRequestDTO.password())) {
+            log.info("Transaction started for fetching trainings for trainee with username: {}", trainingRequestDTO.username());
+
+            List<Training> trainings = traineeRepositoryMetrics.measureDataLoadTime(() ->
+                    traineeRepository.findTrainingsByTraineeAndDateRange(
+                            trainingRequestDTO.username(),
+                            trainingRequestDTO.periodFrom(),
+                            trainingRequestDTO.periodTo(),
+                            trainingRequestDTO.trainerName(),
+                            trainingRequestDTO.trainingType()
+                    )
+            );
+
+            return trainings.stream().map(
+                    training -> new TrainingDTO(
+                            training.getTrainingName(),
+                            training.getTrainingDate(),
+                            training.getTrainingType(),
+                            training.getTrainingDuration(),
+                            training.getTrainer().getUser().getFirstName())
+            ).toList();
+        } else { throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);}
     }
 
-    public List<TrainingDTO> getTraineeTrainings(String username, LocalDate fromDate,
-                                                 LocalDate toDate, String trainerName,
-                                                 TrainingType trainingType) {
-        String transactionId = generateTransactionId();
-        MDC.put("getTraineeTransactionId", transactionId);
-        log.info("Transaction started for fetching trainings for trainee with username: {}", username);
+    public List<TrainerDTO> updateTraineeTrainers(String username, List<String> trainerUsernames, String password) {
+        if (authService.isAuthenticateUser(username, password)) {
+            log.info("Transaction started for updating trainers for trainee with username: {}", username);
 
-        List<Training> trainings = traineeRepository.findTrainingsByTraineeAndDateRange(username, fromDate, toDate, trainerName, trainingType);
-
-        log.info("Transaction {}: Found {} trainings for trainee with username: {}", transactionId, trainings.size(), username);
-        MDC.clear();
-        return trainings.stream().map(
-                training -> new TrainingDTO(
-                        training.getTrainingName(),
-                        training.getTrainingDate(),
-                        training.getTrainingType(),
-                        training.getTrainingDuration(),
-                        training.getTrainer().getUser().getFirstName())
-        ).collect(Collectors.toList());
-    }
-
-    public List<TrainerDTO> updateTraineeTrainers(String username, List<String> trainerUsernames) {
-        String transactionId = generateTransactionId();
-        MDC.put("updateTransactionId", transactionId);
-        log.info("Transaction started for updating trainers for trainee with username: {}", username);
-
-        Trainee trainee = getTraineeByUsername(username);
-        if (trainee == null) {
-            throw new RuntimeException("Trainee not found");
-        } else {
+            var trainee = getTraineeByUsername(username, password);
 
             Set<Trainer> trainers = trainerUsernames.stream()
                     .map(trainerService::getTrainerByUsername)
@@ -132,8 +148,6 @@ public class TraineeService {
             trainee.setTrainers(trainers);
             traineeRepository.save(trainee);
 
-            log.info("Transaction {}: Trainers updated for trainee with username: {}", transactionId, username);
-            MDC.clear();
             return trainers.stream().map(
                     trainer -> new TrainerDTO(
                             new UserDTO(
@@ -142,44 +156,40 @@ public class TraineeService {
                                     trainer.getUser().getLastName(),
                                     trainer.getUser().getIsActive()),
                             trainer.getSpecialization())
-            ).collect(Collectors.toList());
-        }
+            ).toList();
+        } else { throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);}
     }
 
-    public TraineeProfileDTO getTraineeProfile(String username) {
-        Trainee trainee = getTraineeByUsername(username);
-
+    public TraineeProfileDTO getTraineeProfile(String username, String password) {
+        var trainee = traineeRepositoryMetrics.measureQueryExecutionTime(
+                () -> traineeRepositoryMetrics.measureDataLoadTime(() -> getTraineeByUsername(username, password)));
         if (trainee == null) {
-            throw new RuntimeException("Trainee not found");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
 
         return getTraineeProfileDTO(trainee);
     }
 
 
-    public TraineeProfileDTO updateTraineeProfile(TraineeUpdateProfileDTO updateProfile) {
-        String transactionId = generateTransactionId();
-        MDC.put("transactionId", transactionId);
-        log.info("Transaction started for updating profile of trainee with username: {}", updateProfile.getUsername());
+    public TraineeProfileDTO updateTraineeProfile(TraineeUpdateProfileDTO updateProfile, String password) {
+        log.info("Transaction started for updating profile of trainee with username: {}", updateProfile.username());
 
-        Trainee trainee = getTraineeByUsername(updateProfile.getUsername());
+        var trainee = getTraineeByUsername(updateProfile.username(), password);
 
         if (trainee == null) {
-            throw new RuntimeException("Trainee not found");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         } else {
-            User user = trainee.getUser();
-            user.setFirstName(updateProfile.getFirstName());
-            user.setLastName(updateProfile.getLastName());
-            user.setUsername(updateProfile.getUsername());
+            var user = trainee.getUser();
+            user.setFirstName(updateProfile.firstName());
+            user.setLastName(updateProfile.lastName());
+            user.setUsername(updateProfile.username());
             user.setIsActive(updateProfile.isActive());
 
-            trainee.setDateOfBirth(updateProfile.getDateOfBirth());
-            trainee.setAddress(updateProfile.getAddress());
+            trainee.setDateOfBirth(updateProfile.dateOfBirth());
+            trainee.setAddress(updateProfile.address());
             trainee.setUser(user);
             traineeRepository.updateTraineeByUserUsername(trainee.getUser().getUsername(), trainee);
-            log.info("Transaction {}: Updated profile for trainee with username: {}", transactionId, updateProfile.getUsername());
         }
-        MDC.clear();
         return getTraineeProfileDTO(trainee);
     }
 

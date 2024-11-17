@@ -1,73 +1,101 @@
 package org.edu.fpm.gym.service;
 
-import org.edu.fpm.gym.dto.TraineeProfileDTO;
-import org.edu.fpm.gym.dto.TraineeUpdateProfileDTO;
-import org.edu.fpm.gym.dto.TrainerDTO;
-import org.edu.fpm.gym.dto.TrainingDTO;
-import org.edu.fpm.gym.entity.*;
+import org.edu.fpm.gym.dto.trainee.TraineeUpdateProfileDTO;
+import org.edu.fpm.gym.dto.trainer.TrainerDTO;
+import org.edu.fpm.gym.dto.training.TrainingDTO;
+import org.edu.fpm.gym.entity.Trainee;
+import org.edu.fpm.gym.entity.Training;
+import org.edu.fpm.gym.entity.TrainingType;
+import org.edu.fpm.gym.entity.User;
+import org.edu.fpm.gym.metrics.TraineeRepositoryMetrics;
 import org.edu.fpm.gym.repository.TraineeRepository;
+import org.edu.fpm.gym.utils.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class TraineeServiceTest {
     @Mock
     private TraineeRepository traineeRepository;
     @Mock
+    TraineeRepositoryMetrics traineeRepositoryMetrics;
+    @Mock
     TrainerService trainerService;
+    @Mock
+    UserService userService;
+    @Mock
+    AuthService authService;
 
     @InjectMocks
     private TraineeService traineeService;
 
     private Trainee trainee;
 
+    private final String username = "testuser";
+    private final String password = "password";
+    private final User user = TestDataFactory.createUser("John.Doe");
+    TrainingType trainingType = TestDataFactory.createTrainingType();
+
+
     @BeforeEach
     public void setUp() {
+        trainee = TestDataFactory.createTrainee(user);
 
-        trainee = new Trainee();
-        trainee.setUser(new User());
-        trainee.getUser().setFirstName("John");
-        trainee.getUser().setLastName("Doe");
-        trainee.getUser().setUsername("john.doe");
-        trainee.getUser().setPassword("testPassword");
-        trainee.getUser().setIsActive(true);
-        trainee.setDateOfBirth(LocalDate.now());
-        trainee.setAddress("testAddress");
+        when(traineeRepositoryMetrics.measureQueryExecutionTime(any())).thenAnswer(invocation ->
+                ((Supplier<Trainee>) invocation.getArgument(0)).get());
+
+        when(traineeRepositoryMetrics.measureDataLoadTime(any())).thenAnswer(invocation ->
+                ((Supplier<Trainee>) invocation.getArgument(0)).get());
+
+        when(traineeRepositoryMetrics.measureDbConnectionTime(any())).thenAnswer(invocation ->
+                ((Supplier<Trainee>) invocation.getArgument(0)).get());
     }
+
     @Test
-    void createTrainee_Test() {
-        Trainee trainee = new Trainee();
-        User user = new User();
-        user.setUsername("traineeUsername");
-        trainee.setUser(user);
+    void createTrainee_Success_Test() {
+        var traineeDTO = TestDataFactory.createTraineeDTO();
 
-        when(traineeRepository.save(trainee)).thenReturn(trainee);
+        when(userService.generateUsername("John", "Doe")).thenReturn("johndoe");
+        when(userService.generatePassword()).thenReturn("testPassword");
+        when(traineeRepository.save(any(Trainee.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Trainee result = traineeService.createTrainee(trainee);
+        var result = traineeService.createTrainee(traineeDTO);
 
         assertNotNull(result);
-        verify(traineeRepository, times(1)).save(trainee);
+        assertEquals("John", result.getUser().getFirstName());
+        assertEquals("Doe", result.getUser().getLastName());
+        assertEquals("johndoe", result.getUser().getUsername());
+        assertEquals("123 Main St", result.getAddress());
+
+        verify(userService, times(1)).generateUsername("John", "Doe");
+        verify(userService, times(1)).generatePassword();
+        verify(traineeRepository, times(2)).save(any(Trainee.class));
+        verify(traineeRepositoryMetrics, times(1)).measureDbConnectionTime(any());
+        verify(traineeRepositoryMetrics, times(1)).measureQueryExecutionTime(any());
     }
 
     @Test
     void getTraineeByUsername_Test() {
-        String username = "testuser";
-        Trainee trainee = new Trainee();
+        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
         when(traineeRepository.findTraineeByUser_Username(username)).thenReturn(trainee);
 
-        Trainee result = traineeService.getTraineeByUsername(username);
+        var result = traineeService.getTraineeByUsername(username, password);
 
         assertNotNull(result);
         assertEquals(trainee, result);
@@ -76,80 +104,62 @@ class TraineeServiceTest {
 
     @Test
     void deleteTraineeByUsername_Test() {
-        String username = "testuser";
-
-        Trainee trainee = new Trainee();
-        trainee.setUser(new User());
-        trainee.getUser().setUsername(username);
-
+        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
         when(traineeRepository.findTraineeByUser_Username(username)).thenReturn(trainee);
 
-        traineeService.deleteTraineeByUsername(username);
+        traineeService.deleteTraineeByUsername(username, password);
 
         verify(traineeRepository, times(1)).delete(trainee);
     }
 
     @Test
     void switchTraineeActivation_Test() {
-        String username = "testuser";
         boolean isActive = true;
 
-        traineeService.switchTraineeActivation(username, isActive);
+        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
+        traineeService.switchTraineeActivation(username, isActive, password);
 
         verify(traineeRepository, times(1)).switchActivation(username, isActive);
     }
 
     @Test
     void getTraineeTrainings_Test() {
-        String username = "testuser";
-        LocalDate fromDate = LocalDate.of(2023, 1, 1);
-        LocalDate toDate = LocalDate.of(2023, 12, 31);
-        String trainerName = "trainer";
-        TrainingType trainingType = new TrainingType();
+        var trainingRequest = TestDataFactory.createTrainingRequestDTO();
+        List<Training> trainings = List.of(
+                TestDataFactory.createTraining(TestDataFactory.createTrainer(TestDataFactory.createUser("John.Doe"), trainingType))
+        );
 
-        List<Training> trainings = new ArrayList<>();
-        Training training = new Training();
-        training.setTrainingName("Cardio Workout");
-        training.setTrainingDate(LocalDate.of(2023, 5, 1));
-        training.setTrainingType(trainingType);
-        Trainer trainer = new Trainer();
-        User trainerUser = new User();
-        trainerUser.setFirstName("John");
-        trainer.setUser(trainerUser);
-        training.setTrainer(trainer);
-        trainings.add(training);
-
-        when(traineeRepository.findTrainingsByTraineeAndDateRange(username, fromDate, toDate, trainerName, trainingType))
+        when(authService.isAuthenticateUser(trainingRequest.username(), trainingRequest.password())).thenReturn(true);
+        when(traineeRepository.findTrainingsByTraineeAndDateRange(
+                trainingRequest.username(),
+                trainingRequest.periodFrom(),
+                trainingRequest.periodTo(),
+                trainingRequest.trainerName(),
+                trainingRequest.trainingType()))
                 .thenReturn(trainings);
 
-        List<TrainingDTO> result = traineeService.getTraineeTrainings(username, fromDate, toDate, trainerName, trainingType);
+        List<TrainingDTO> result = traineeService.getTraineeTrainings(trainingRequest);
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("Cardio Workout", result.get(0).getTrainingName());
-        assertEquals(LocalDate.of(2023, 5, 1), result.get(0).getTrainingDate());
-        assertEquals("John", result.get(0).getUserName());
+        assertEquals("Cardio Workout", result.getFirst().trainingName());
+        assertEquals(LocalDate.now(), result.getFirst().trainingDate());
+        assertEquals("John", result.getFirst().userName());
     }
 
     @Test
     void updateTraineeTrainers_Test() {
-        String username = "testuser";
         List<String> trainerUsernames = Arrays.asList("trainer1", "trainer2");
 
-        Trainee trainee = new Trainee();
-        trainee.setUser(new User());
-        trainee.getUser().setUsername(username);
+        var trainer1 = TestDataFactory.createTrainer(user, trainingType);
+        var trainer2 = TestDataFactory.createTrainer(user, trainingType);
 
-        Trainer trainer1 = new Trainer();
-        Trainer trainer2 = new Trainer();
-        trainer1.setUser(new User("trainer1", "John", "Doe", true));
-        trainer2.setUser(new User("trainer2", "Jane", "Smith", true));
-
+        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
         when(trainerService.getTrainerByUsername("trainer1")).thenReturn(trainer1);
         when(trainerService.getTrainerByUsername("trainer2")).thenReturn(trainer2);
         when(traineeRepository.findTraineeByUser_Username(username)).thenReturn(trainee);
 
-        List<TrainerDTO> result = traineeService.updateTraineeTrainers(username, trainerUsernames);
+        List<TrainerDTO> result = traineeService.updateTraineeTrainers(username, trainerUsernames, password);
 
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -158,63 +168,46 @@ class TraineeServiceTest {
 
     @Test
     void getTraineeProfile_TraineeExists_Test() {
-        String username = "testuser";
-        Trainee trainee = new Trainee();
-        User user = new User();
-        user.setFirstName("John");
-        user.setLastName("Doe");
-        user.setUsername(username);
-        user.setIsActive(true);
-        trainee.setUser(user);
-        trainee.setDateOfBirth(LocalDate.of(1990, 1, 1));
-        trainee.setAddress("123 Street");
+        trainee.setTrainers(new HashSet<>());
 
+        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
         when(traineeRepository.findTraineeByUser_Username(username)).thenReturn(trainee);
 
-        TraineeProfileDTO result = traineeService.getTraineeProfile(username);
-
+        var result = traineeService.getTraineeProfile(username, password);
         assertNotNull(result);
-        assertEquals("John", result.getFirstName());
-        assertEquals("Doe", result.getLastName());
-        assertEquals("123 Street", result.getAddress());
+        assertEquals("John", result.firstName());
+        assertEquals("Doe", result.lastName());
+        assertEquals("123 Main St", result.address());
     }
 
     @Test
-    void getTraineeProfile_TraineeNotFound_Test() {
-        String username = "unknownuser";
-
+    void getTraineeProfile_TraineeNotAuthorized_Test() {
+        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
         when(traineeRepository.findTraineeByUser_Username(username)).thenReturn(null);
 
         Exception exception = assertThrows(RuntimeException.class, () -> {
-            traineeService.getTraineeProfile(username);
+            traineeService.getTraineeProfile(username, password);
         });
 
-        assertEquals("Trainee not found", exception.getMessage());
+        assertEquals("401 UNAUTHORIZED", exception.getMessage());
     }
 
     @Test
     void updateTraineeProfile_TraineeExists_Test() {
-        TraineeUpdateProfileDTO updateProfile = new TraineeUpdateProfileDTO();
-        updateProfile.setUsername("testuser");
-        updateProfile.setFirstName("UpdatedFirstName");
-        updateProfile.setLastName("UpdatedLastName");
-        updateProfile.setActive(true);
-        updateProfile.setDateOfBirth(LocalDate.of(1995, 5, 5));
-        updateProfile.setAddress("Updated Address");
+        var updateProfile = new TraineeUpdateProfileDTO("testuser", "UpdatedFirstName", "UpdatedLastName",
+                         LocalDate.of(1995, 5, 5), "Updated Address", true);
 
-        Trainee trainee = new Trainee();
-        User user = new User();
-        user.setUsername("testuser");
-        trainee.setUser(user);
+        trainee.setTrainers(new HashSet<>());
 
+        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
         when(traineeRepository.findTraineeByUser_Username("testuser")).thenReturn(trainee);
 
-        TraineeProfileDTO result = traineeService.updateTraineeProfile(updateProfile);
+        var result = traineeService.updateTraineeProfile(updateProfile, "password");
 
         assertNotNull(result);
-        assertEquals("UpdatedFirstName", result.getFirstName());
-        assertEquals("UpdatedLastName", result.getLastName());
-        assertEquals("Updated Address", result.getAddress());
+        assertEquals("UpdatedFirstName", result.firstName());
+        assertEquals("UpdatedLastName", result.lastName());
+        assertEquals("Updated Address", result.address());
         verify(traineeRepository, times(1)).updateTraineeByUserUsername(eq("testuser"), any(Trainee.class));
     }
 }

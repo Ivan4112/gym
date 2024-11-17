@@ -1,10 +1,12 @@
 package org.edu.fpm.gym.service;
 
+import org.edu.fpm.gym.dto.training.AddTrainingDTO;
 import org.edu.fpm.gym.entity.*;
 import org.edu.fpm.gym.repository.TraineeRepository;
 import org.edu.fpm.gym.repository.TrainerRepository;
 import org.edu.fpm.gym.repository.TrainingRepository;
 import org.edu.fpm.gym.repository.TrainingTypeRepository;
+import org.edu.fpm.gym.utils.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +18,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,79 +31,71 @@ class TrainingServiceTest {
     private TrainerRepository trainerRepository;
     @Mock
     TrainingTypeRepository trainingTypeRepository;
+    @Mock
+    AuthService authService;
 
     @InjectMocks
     private TrainingService trainingService;
 
     Trainee trainee;
     Trainer trainer;
+    Training training;
     TrainingType trainingType;
+    private final Long ID = 1L;
 
     @BeforeEach
     void setUp() {
         String username = "testuser";
-        User user = new User();
-        user.setFirstName("traineeUser");
-        user.setLastName("Doe");
-        user.setUsername(username);
-        user.setIsActive(true);
-        trainee = new Trainee();
-        trainee.setUser(user);
-        trainee.setDateOfBirth(LocalDate.of(1990, 1, 1));
-        trainee.setAddress("123 Street");
-
-        user.setFirstName("trainerUser");
-        trainer = new Trainer();
-        trainer.setId(1L);
-        trainer.setUser(user);
-
-        trainingType = new TrainingType();
-        trainingType.setTrainingTypeName("Yoga");
+        var user = TestDataFactory.createUser(username);
+        trainingType = TestDataFactory.createTrainingType();
+        trainee = TestDataFactory.createTrainee(user);
+        trainer = TestDataFactory.createTrainer(user, trainingType);
+        training = new Training();
     }
 
     @Test
     void addTraining_Test() {
         String traineeUsername = "traineeUser";
         String trainerUsername = "trainerUser";
+        String password = "password";
         String trainingName = "Yoga";
         LocalDate trainingDate = LocalDate.now();
         int trainingDuration = 60;
 
+        when(authService.isAuthenticateUser(traineeUsername, password)).thenReturn(true);
         when(traineeRepository.findTraineeByUser_Username(traineeUsername)).thenReturn(trainee);
         when(trainerRepository.findTrainerByUser_Username(trainerUsername)).thenReturn(trainer);
         when(trainingTypeRepository.findTrainingTypeByTrainingTypeName(trainingName)).thenReturn(trainingType);
 
-        boolean result = trainingService.addTraining(traineeUsername, trainerUsername, trainingName, trainingDate, trainingDuration);
+        var addTrainingDTO = new AddTrainingDTO(traineeUsername, trainerUsername,
+                trainingName, trainingDate, trainingDuration);
 
-        assertTrue(result);
-        verify(trainingRepository, times(1)).save(any(Training.class)); // Перевірка, що метод save був викликаний
+        var response = trainingService.addTraining(addTrainingDTO, password);
+        assertEquals("Training added successfully", response);
+        verify(trainingRepository, times(1)).save(any(Training.class));
     }
 
     @Test
     void getTrainingsByTrainee_Test() {
-        Long traineeId = 1L;
-        Training training = new Training();
-        training.setId(1L);
+        training.setId(1);
         List<Training> expectedTrainings = Collections.singletonList(training);
 
-        when(trainingRepository.findByTraineeId(traineeId)).thenReturn(expectedTrainings);
-        List<Training> result = trainingService.getTrainingsByTrainee(traineeId);
+        when(trainingRepository.findByTraineeId(ID)).thenReturn(expectedTrainings);
+        List<Training> result = trainingService.getTrainingsByTrainee(ID);
 
-        verify(trainingRepository).findByTraineeId(traineeId);
+        verify(trainingRepository).findByTraineeId(ID);
         assertEquals(expectedTrainings, result);
     }
 
     @Test
     void getTrainingsByTrainer_Test() {
-        Long trainerId = 1L;
-        Training training = new Training();
-        training.setId(1L);
+        training.setId(1);
         List<Training> expectedTrainings = Collections.singletonList(training);
 
-        when(trainingRepository.findByTrainerId(trainerId)).thenReturn(expectedTrainings);
-        List<Training> result = trainingService.getTrainingsByTrainer(trainerId);
+        when(trainingRepository.findByTrainerId(ID)).thenReturn(expectedTrainings);
+        List<Training> result = trainingService.getTrainingsByTrainer(ID);
 
-        verify(trainingRepository).findByTrainerId(trainerId);
+        verify(trainingRepository).findByTrainerId(ID);
         assertEquals(expectedTrainings, result);
     }
 }

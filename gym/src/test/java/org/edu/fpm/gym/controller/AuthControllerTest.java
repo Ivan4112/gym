@@ -1,5 +1,6 @@
 package org.edu.fpm.gym.controller;
 
+import lombok.SneakyThrows;
 import org.edu.fpm.gym.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,9 @@ class AuthControllerTest {
 
     @InjectMocks
     private AuthController authController;
+    private final String username = "testUser";
+    private final String password = "password";
+    private final String newPassword = "newPassword";
 
     @BeforeEach
     void setUp() {
@@ -34,13 +38,10 @@ class AuthControllerTest {
     }
 
     @Test
-    void login_Success_Test() throws Exception {
-        String username = "testUser";
-        String password = "testPassword";
-
-        when(authService.authenticateUser(username, password)).thenReturn(true);
-
-        mockMvc.perform(get("/gym/auth/login")
+    @SneakyThrows
+    void login_Success_Test() {
+        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
+        mockMvc.perform(get("/v1/gym/auth/login")
                         .param("username", username)
                         .param("password", password)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -50,12 +51,9 @@ class AuthControllerTest {
 
     @Test
     void login_Unauthorized_Test() throws Exception {
-        String username = "testUser";
-        String password = "wrongPassword";
+        when(authService.isAuthenticateUser(username, password)).thenReturn(false);
 
-        when(authService.authenticateUser(username, password)).thenReturn(false);
-
-        mockMvc.perform(get("/gym/auth/login")
+        mockMvc.perform(get("/v1/gym/auth/login")
                         .param("username", username)
                         .param("password", password)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -64,16 +62,13 @@ class AuthControllerTest {
     }
 
     @Test
-    void changePassword_Success_Test() throws Exception {
-        String username = "testUser";
-        String oldPassword = "oldPassword";
-        String newPassword = "newPassword";
+    @SneakyThrows
+    void changePassword_Success_Test() {
+        when(authService.changePassword(username, password, newPassword)).thenReturn(true);
 
-        when(authService.changePassword(username, oldPassword, newPassword)).thenReturn(true);
-
-        mockMvc.perform(put("/gym/auth/change-password")
+        mockMvc.perform(put("/v1/gym/auth/change-password")
                         .param("username", username)
-                        .param("oldPassword", oldPassword)
+                        .param("oldPassword", password)
                         .param("newPassword", newPassword)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -81,16 +76,13 @@ class AuthControllerTest {
     }
 
     @Test
-    void changePassword_Unauthorized_Test() throws Exception {
-        String username = "testUser";
-        String oldPassword = "wrongOldPassword";
-        String newPassword = "newPassword";
+    @SneakyThrows
+    void changePassword_Unauthorized_Test() {
+        when(authService.changePassword(username, password, newPassword)).thenReturn(false);
 
-        when(authService.changePassword(username, oldPassword, newPassword)).thenReturn(false);
-
-        mockMvc.perform(put("/gym/auth/change-password")
+        mockMvc.perform(put("/v1/gym/auth/change-password")
                         .param("username", username)
-                        .param("oldPassword", oldPassword)
+                        .param("oldPassword", password)
                         .param("newPassword", newPassword)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())

@@ -1,7 +1,8 @@
 package org.edu.fpm.gym.controller;
 
-import org.edu.fpm.gym.entity.TrainingType;
+import org.edu.fpm.gym.dto.trainingType.TrainingTypeDTO;
 import org.edu.fpm.gym.service.TrainingTypeService;
+import org.edu.fpm.gym.utils.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.Arrays;
+import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -37,14 +38,11 @@ class TrainingTypeControllerTest {
 
     @Test
     void getTrainingTypes_Success_Test() throws Exception {
-        when(trainingTypeService.findAllTrainingTypes()).thenReturn(
-                Arrays.asList(
-                        new TrainingType(1L, "Yoga"),
-                        new TrainingType(2L, "Pilates")
-                )
-        );
+        List<TrainingTypeDTO> trainingTypes = TestDataFactory.createTrainingTypeDTOList();
 
-        mockMvc.perform(get("/gym/trainingType/get")
+        when(trainingTypeService.findAllTrainingTypes()).thenReturn(trainingTypes);
+
+        mockMvc.perform(get("/v1/gym/trainingType/get")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())  // 200
                 .andExpect(jsonPath("$[0].id").value(1))

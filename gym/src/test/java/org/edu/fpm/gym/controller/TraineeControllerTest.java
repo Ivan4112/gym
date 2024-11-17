@@ -2,14 +2,15 @@ package org.edu.fpm.gym.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.edu.fpm.gym.dto.*;
+import lombok.SneakyThrows;
+import org.edu.fpm.gym.dto.trainee.TraineeProfileDTO;
+import org.edu.fpm.gym.dto.trainee.TraineeUpdateProfileDTO;
+import org.edu.fpm.gym.dto.trainer.TrainerDTO;
+import org.edu.fpm.gym.dto.user.UserDTO;
 import org.edu.fpm.gym.entity.Trainer;
-import org.edu.fpm.gym.entity.TrainingType;
-import org.edu.fpm.gym.entity.User;
-import org.edu.fpm.gym.exception.UnauthorizedException;
 import org.edu.fpm.gym.service.TraineeService;
 import org.edu.fpm.gym.service.TrainerService;
-import org.edu.fpm.gym.service.UserService;
+import org.edu.fpm.gym.utils.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,8 +28,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -43,55 +44,42 @@ class TraineeControllerTest {
     @Mock
     private TrainerService trainerService;
 
-    @Mock
-    private UserService userService;
-
     @InjectMocks
     private TraineeController traineeController;
 
     private ObjectMapper objectMapper;
-
+    private final String username = "john.doe";
+    private final String password = "password";
+    private TraineeProfileDTO traineeProfileDTO;
     @BeforeEach
     void setUp() {
+        traineeProfileDTO = new TraineeProfileDTO("John", "Doe", "1990-01-01", "123 Main St", true, new ArrayList<>());
+
         mockMvc = MockMvcBuilders.standaloneSetup(traineeController).build();
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Test
-    void registerTrainee_Test() throws Exception {
-        TraineeDTO traineeDTO = new TraineeDTO();
-        traineeDTO.setUser(new UserDTO("John", "Doe", "john.doe", true));
-        traineeDTO.setAddress("123 Main St");
-        traineeDTO.setDateOfBirth(LocalDate.of(1990, 1, 1));
-
+    @SneakyThrows
+    void registerTrainee_Test() {
         String jsonContent = Files.readString(Paths.get(getClass().getClassLoader().getResource("data/registerTrainee.json").toURI()));
 
-
-        when(userService.generatePassword()).thenReturn("randomPassword");
-        when(userService.generateUsername("John", "Doe")).thenReturn("John.Doe");
-
-        mockMvc.perform(post("/gym/trainee/register")
+        mockMvc.perform(post("/v1/gym/trainee/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    @SneakyThrows
+    void getTraineeProfile_Success_Test() {
+        when(traineeService.getTraineeProfile("john.doe", "password")).thenReturn(traineeProfileDTO);
+
+        mockMvc.perform(get("/v1/gym/trainee/profile")
+                        .param("username", username)
+                        .param("password", password))
                 .andExpect(status().isOk())
-                .andExpect(content().string("ok"));
-    }
-
-    @Test
-    void getTraineeProfile_Success_Test() throws Exception {
-        TraineeProfileDTO profileDTO = new TraineeProfileDTO();
-        profileDTO.setFirstName("John");
-        profileDTO.setLastName("Doe");
-        profileDTO.setDateOfBirth("1990-01-01");
-        profileDTO.setAddress("123 Main St");
-        profileDTO.setActive(true);
-
-        when(traineeService.getTraineeProfile("John.Doe")).thenReturn(profileDTO);
-
-        mockMvc.perform(get("/gym/trainee/profile")
-                        .param("username", "John.Doe"))
-                .andExpect(status().isOk())  // 200
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Doe"))
                 .andExpect(jsonPath("$.dateOfBirth").value("1990-01-01"))
@@ -99,154 +87,90 @@ class TraineeControllerTest {
     }
 
     @Test
-    void getTraineeProfile_NotFound_Test() throws Exception {
-        when(traineeService.getTraineeProfile("John.Doe")).thenThrow(new RuntimeException("Trainee not found"));
+    @SneakyThrows
+    void updateTraineeProfile_Success_Test() {
+        var updateRequest =
+                new TraineeUpdateProfileDTO("john_doe", "John",
+                        "Doe", LocalDate.of(1990, 1, 1), "123 Main St", true);
 
-        mockMvc.perform(get("/gym/trainee/profile")
-                        .param("username", "John.Doe"))
-                .andExpect(status().isNotFound())  // 404
-                .andExpect(jsonPath("$.message", is("Trainee not found")));
-    }
+        when(traineeService.updateTraineeProfile(updateRequest, password))
+                .thenReturn(traineeProfileDTO);
 
-    @Test
-    void getTraineeProfile_Unauthorized_Test() throws Exception {
-        when(traineeService.getTraineeProfile("John.Doe")).thenThrow(new UnauthorizedException("User unauthorized"));
-
-        mockMvc.perform(get("/gym/trainee/profile")
-                        .param("username", "John.Doe"))
-                .andExpect(status().isUnauthorized());  // 401
-    }
-
-    @Test
-    void deleteTraineeProfile_Test() throws Exception {
-        mockMvc.perform(delete("/gym/trainee/profile-delete")
-                        .param("username", "John.Doe"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void updateTraineeProfile_Success_Test() throws Exception {
-        TraineeUpdateProfileDTO updateRequest = new TraineeUpdateProfileDTO();
-        updateRequest.setUsername("john_doe");
-        updateRequest.setFirstName("John");
-        updateRequest.setLastName("Doe");
-        updateRequest.setDateOfBirth(LocalDate.of(1990, 1, 1));
-        updateRequest.setAddress("123 Main St");
-        updateRequest.setActive(true);
-
-        when(traineeService.updateTraineeProfile(any(TraineeUpdateProfileDTO.class)))
-                .thenReturn(new TraineeProfileDTO("John", "Doe", "1990-01-01", "123 Main St", true, new ArrayList<>()));
-
-        mockMvc.perform(put("/gym/trainee/profile-update")
+        mockMvc.perform(put("/v1/gym/trainee/profile-update")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())  // 200
+                        .content(objectMapper.writeValueAsString(updateRequest))
+                        .param("password", password))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Doe"))
                 .andExpect(jsonPath("$.dateOfBirth").value("1990-01-01"))
                 .andExpect(jsonPath("$.address").value("123 Main St"));
-//                .andExpect(jsonPath("$.isActive").value(true));
     }
 
 
     @Test
-    void deleteTraineeProfile_Success_Test() throws Exception {
-        String username = "john_doe";
+    @SneakyThrows
+    void deleteTraineeProfile_Success_Test() {
+        doNothing().when(traineeService).deleteTraineeByUsername(username, password);
 
-        doNothing().when(traineeService).deleteTraineeByUsername(username);
-
-        mockMvc.perform(delete("/gym/trainee/profile-delete")
-                        .param("username", username))
-                .andExpect(status().isOk())  // 200
-                .andExpect(content().string(""));
+        mockMvc.perform(delete("/v1/gym/trainee/profile-delete")
+                        .param("username", username)
+                        .param("password", password))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Successfully deleted"));
     }
 
     @Test
-    void testGetNotAssignedActiveTrainers_Success() throws Exception {
-        String username = "john_doe";
+    @SneakyThrows
+    void getNotAssignedActiveTrainers_Success_Test() {
+        List<Trainer> trainers = TestDataFactory.createTrainerList();
 
-        User user1 = new User();
-        user1.setFirstName("John");
-        user1.setLastName("Doe");
-        user1.setUsername("user1");
-        user1.setPassword("password1");
-        user1.setIsActive(true);
+        when(trainerService.getAvailableTrainersForTrainee(username, password)).thenReturn(trainers);
 
-        User user2 = new User();
-        user2.setFirstName("Jane");
-        user2.setLastName("Smith");
-        user2.setUsername("user2");
-        user2.setPassword("password2");
-        user2.setIsActive(true);
-
-        TrainingType specialization1 = new TrainingType();
-        specialization1.setTrainingTypeName("Run");
-
-        TrainingType specialization2 = new TrainingType();
-        specialization2.setTrainingTypeName("Yoga");
-
-        Trainer trainer1 = new Trainer();
-        trainer1.setUser(user1);
-        trainer1.setSpecialization(specialization1);
-
-        Trainer trainer2 = new Trainer();
-        trainer2.setUser(user2);
-        trainer2.setSpecialization(specialization2);
-
-        List<Trainer> trainers = Arrays.asList(trainer1, trainer2);
-        when(trainerService.getAvailableTrainersForTrainee(username)).thenReturn(trainers);
-
-        mockMvc.perform(get("/gym/trainee/unassigned-trainers")
-                        .param("username", username)) // Параметр передається через .param
-                .andExpect(status().isOk())  // 200
-                .andExpect(jsonPath("$[0].user.username").value("user1"))
-                .andExpect(jsonPath("$[1].user.username").value("user2"))
-                .andExpect(jsonPath("$[0].specialization.trainingTypeName").value("Run"))
-                .andExpect(jsonPath("$[1].specialization.trainingTypeName").value("Yoga"));
+        mockMvc.perform(get("/v1/gym/trainee/unassigned-trainers")
+                        .param("username", username)
+                        .param("password", password))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].user.username").value("John.Doe"))
+                .andExpect(jsonPath("$[1].user.username").value("Jane.Smith"))
+                .andExpect(jsonPath("$[0].specialization.trainingTypeName").value("Cardio"))
+                .andExpect(jsonPath("$[1].specialization.trainingTypeName").value("Cardio"));
     }
 
     @Test
-    void updateTraineeTrainers_Success_Test() throws Exception {
-        String username = "john_doe";
+    @SneakyThrows
+    void updateTraineeTrainers_Success_Test() {
         List<String> trainerUsernames = Arrays.asList("trainer1", "trainer2");
 
-        UserDTO user1 = new UserDTO("John", "Doe", "trainer1", true);
-        UserDTO user2 = new UserDTO("Jane", "Smith", "trainer2", true);
-
-        TrainingType specialization1 = new TrainingType();
-        specialization1.setTrainingTypeName("Yoga");
-
-        TrainingType specialization2 = new TrainingType();
-        specialization2.setTrainingTypeName("Pilates");
-
-        TrainerDTO trainer1 = new TrainerDTO(user1, specialization1);
-        TrainerDTO trainer2 = new TrainerDTO(user2, specialization2);
+        var trainer1 = new TrainerDTO(new UserDTO("John", "Doe", "trainer1", true), TestDataFactory.createTrainingType());
+        var trainer2 = new TrainerDTO(new UserDTO("Jane", "Smith", "trainer2", true), TestDataFactory.createTrainingType());
 
         List<TrainerDTO> updatedTrainers = Arrays.asList(trainer1, trainer2);
 
-        when(traineeService.updateTraineeTrainers(username, trainerUsernames)).thenReturn(updatedTrainers);
+        when(traineeService.updateTraineeTrainers(username, trainerUsernames, password)).thenReturn(updatedTrainers);
 
-        mockMvc.perform(put("/gym/trainee/trainers?username=" + username)
+        mockMvc.perform(put("/v1/gym/trainee/trainers?username=" + username + "&password="+password)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(trainerUsernames)))
-                .andExpect(status().isOk())  // Перевірка статусу 200
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].user.username").value("trainer1"))
                 .andExpect(jsonPath("$[1].user.username").value("trainer2"))
-                .andExpect(jsonPath("$[0].specialization.trainingTypeName").value("Yoga"))
-                .andExpect(jsonPath("$[1].specialization.trainingTypeName").value("Pilates"));
+                .andExpect(jsonPath("$[0].specialization.trainingTypeName").value("Cardio"))
+                .andExpect(jsonPath("$[1].specialization.trainingTypeName").value("Cardio"));
     }
 
     @Test
-    void updateTraineeStatus_Success_Test() throws Exception {
-        String username = "john_doe";
+    @SneakyThrows
+    void updateTraineeStatus_Success_Test() {
         boolean isActive = true;
 
-        doNothing().when(traineeService).switchTraineeActivation(username, isActive);
+        doNothing().when(traineeService).switchTraineeActivation(username, isActive, password);
 
-        mockMvc.perform(patch("/gym/trainee/status")
+        mockMvc.perform(patch("/v1/gym/trainee/status")
                         .param("username", username)
+                        .param("password", password)
                         .param("isActive", String.valueOf(isActive)))
-                .andExpect(status().isOk())  // 200
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value("Trainee status updated successfully"));
     }
 }

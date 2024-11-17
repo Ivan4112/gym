@@ -1,7 +1,9 @@
 package org.edu.fpm.gym.service;
 
+import org.edu.fpm.gym.dto.trainingType.TrainingTypeDTO;
 import org.edu.fpm.gym.entity.TrainingType;
 import org.edu.fpm.gym.repository.TrainingTypeRepository;
+import org.edu.fpm.gym.utils.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,19 +26,16 @@ class TrainingTypeServiceTest {
     private TrainingTypeService trainingTypeService;
 
     private TrainingType trainingType;
+    private final String trainingTypeName = "Cardio";
 
     @BeforeEach
     void setUp() {
-        trainingType = new TrainingType();
-        trainingType.setTrainingTypeName("Yoga");
+        trainingType = TestDataFactory.createTrainingType();
     }
 
 
     @Test
     void createTrainingType_Test() {
-        TrainingType trainingType = new TrainingType();
-        trainingType.setTrainingTypeName("Yoga");
-
         when(trainingTypeRepository.save(trainingType)).thenReturn(trainingType);
         TrainingType result = trainingTypeService.createTrainingType(trainingType);
 
@@ -46,9 +45,6 @@ class TrainingTypeServiceTest {
 
     @Test
     void findTrainingTypeByName_Test() {
-        String trainingTypeName = "Yoga";
-        TrainingType trainingType = new TrainingType();
-        trainingType.setTrainingTypeName(trainingTypeName);
 
         when(trainingTypeRepository.findTrainingTypeByTrainingTypeName(trainingTypeName)).thenReturn(trainingType);
         TrainingType result = trainingTypeService.findTrainingTypeByName(trainingTypeName);
@@ -58,15 +54,15 @@ class TrainingTypeServiceTest {
     }
 
     @Test
-    void testFindAllTrainingTypes() {
+    void findAllTrainingTypes_Test() {
         List<TrainingType> trainingTypes = List.of(trainingType);
         when(trainingTypeRepository.findAll()).thenReturn(trainingTypes);
 
-        List<TrainingType> result = trainingTypeService.findAllTrainingTypes();
+        List<TrainingTypeDTO> response = trainingTypeService.findAllTrainingTypes();
 
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("Yoga", result.get(0).getTrainingTypeName());
+        assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals(trainingTypeName, response.getFirst().name());
         verify(trainingTypeRepository, times(1)).findAll();
     }
 }

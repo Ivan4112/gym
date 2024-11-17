@@ -19,10 +19,6 @@ public interface TrainerRepository extends JpaRepository<Trainer, Long> {
     @Query("UPDATE Trainer t SET t = :trainer WHERE t.user.username = :username")
     Trainer updateTrainerByUserUsername(@Param("username") String username, @Param("trainer") Trainer trainer);
 
-    /*@Modifying
-    @Query("UPDATE Trainer t SET t.user.password = :newPassword WHERE t.user.username = :username")
-    void changePassword(String username, String newPassword);*/
-
     @Modifying
     @Transactional
     @Query("UPDATE Trainer t SET t.user.isActive = :isActive WHERE t.user.username = :username")
