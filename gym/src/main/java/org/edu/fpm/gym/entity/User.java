@@ -40,4 +40,11 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Trainer trainers;
+
+    public User(String username, String firstName, String lastName, Boolean isActive) {
+        this.username = username;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.isActive = isActive;
+    }
 }

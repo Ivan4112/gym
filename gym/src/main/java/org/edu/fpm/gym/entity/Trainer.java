@@ -23,8 +23,8 @@ public class Trainer {
     @Column(name = "id_trainer", nullable = false)
     private Long id;
 
-    @OneToOne(fetch = FetchType.EAGER, optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
+//    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
