@@ -1,7 +1,10 @@
 package org.edu.fpm.gym.service;
 
 import org.edu.fpm.gym.dto.training.AddTrainingDTO;
-import org.edu.fpm.gym.entity.*;
+import org.edu.fpm.gym.entity.Trainee;
+import org.edu.fpm.gym.entity.Trainer;
+import org.edu.fpm.gym.entity.Training;
+import org.edu.fpm.gym.entity.TrainingType;
 import org.edu.fpm.gym.repository.TraineeRepository;
 import org.edu.fpm.gym.repository.TrainerRepository;
 import org.edu.fpm.gym.repository.TrainingRepository;
@@ -31,8 +34,6 @@ class TrainingServiceTest {
     private TrainerRepository trainerRepository;
     @Mock
     TrainingTypeRepository trainingTypeRepository;
-    @Mock
-    AuthService authService;
 
     @InjectMocks
     private TrainingService trainingService;
@@ -57,12 +58,10 @@ class TrainingServiceTest {
     void addTraining_Test() {
         String traineeUsername = "traineeUser";
         String trainerUsername = "trainerUser";
-        String password = "password";
         String trainingName = "Yoga";
         LocalDate trainingDate = LocalDate.now();
         int trainingDuration = 60;
 
-        when(authService.isAuthenticateUser(traineeUsername, password)).thenReturn(true);
         when(traineeRepository.findTraineeByUser_Username(traineeUsername)).thenReturn(trainee);
         when(trainerRepository.findTrainerByUser_Username(trainerUsername)).thenReturn(trainer);
         when(trainingTypeRepository.findTrainingTypeByTrainingTypeName(trainingName)).thenReturn(trainingType);
@@ -70,7 +69,7 @@ class TrainingServiceTest {
         var addTrainingDTO = new AddTrainingDTO(traineeUsername, trainerUsername,
                 trainingName, trainingDate, trainingDuration);
 
-        var response = trainingService.addTraining(addTrainingDTO, password);
+        var response = trainingService.addTraining(addTrainingDTO);
         assertEquals("Training added successfully", response);
         verify(trainingRepository, times(1)).save(any(Training.class));
     }

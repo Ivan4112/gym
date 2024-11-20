@@ -3,6 +3,7 @@ package org.edu.fpm.gym.controller;
 import org.edu.fpm.gym.dto.trainingType.TrainingTypeDTO;
 import org.edu.fpm.gym.service.TrainingTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,6 +15,7 @@ import static org.edu.fpm.gym.utils.ApiPaths.TRAINING_TYPE;
 
 @RestController
 @RequestMapping(TRAINING_TYPE)
+@PreAuthorize("isAuthenticated()")
 public class TrainingTypeController {
 
     private final TrainingTypeService trainingTypeService;

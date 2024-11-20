@@ -37,16 +37,14 @@ class TrainingControllerTest {
 
     @Test
     void addTraining_Success() throws Exception {
-        String password = "password";
         AddTrainingDTO addTrainingDTO = new AddTrainingDTO("john.doe", "jane.doe",
                 "Yoga", LocalDate.of(2024, 11, 6), 60);
 
-        when(trainingService.addTraining(addTrainingDTO, password)).thenReturn("Training added successfully");
+        when(trainingService.addTraining(addTrainingDTO)).thenReturn("Training added successfully");
 
         mockMvc.perform(post("/v1/gym/training/add")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(addTrainingDTO))
-                        .param("password", password))
+                        .content(asJsonString(addTrainingDTO)))
                 .andExpect(status().isCreated());
     }
 

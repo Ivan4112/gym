@@ -37,10 +37,6 @@ class TraineeServiceTest {
     TraineeRepositoryMetrics traineeRepositoryMetrics;
     @Mock
     TrainerService trainerService;
-    @Mock
-    UserService userService;
-    @Mock
-    AuthService authService;
 
     @InjectMocks
     private TraineeService traineeService;
@@ -48,7 +44,6 @@ class TraineeServiceTest {
     private Trainee trainee;
 
     private final String username = "testuser";
-    private final String password = "password";
     private final User user = TestDataFactory.createUser("John.Doe");
     TrainingType trainingType = TestDataFactory.createTrainingType();
 
@@ -68,35 +63,10 @@ class TraineeServiceTest {
     }
 
     @Test
-    void createTrainee_Success_Test() {
-        var traineeDTO = TestDataFactory.createTraineeDTO();
-
-        when(userService.generateUsername("John", "Doe")).thenReturn("johndoe");
-        when(userService.generatePassword()).thenReturn("testPassword");
-        when(traineeRepository.save(any(Trainee.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        var result = traineeService.createTrainee(traineeDTO);
-
-        assertNotNull(result);
-        assertEquals("John", result.getUser().getFirstName());
-        assertEquals("Doe", result.getUser().getLastName());
-        assertEquals("johndoe", result.getUser().getUsername());
-        assertEquals("123 Main St", result.getAddress());
-
-        verify(userService, times(1)).generateUsername("John", "Doe");
-        verify(userService, times(1)).generatePassword();
-        verify(traineeRepository, times(2)).save(any(Trainee.class));
-        verify(traineeRepositoryMetrics, times(1)).measureDbConnectionTime(any());
-        verify(traineeRepositoryMetrics, times(1)).measureQueryExecutionTime(any());
-    }
-
-    @Test
     void getTraineeByUsername_Test() {
-        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
         when(traineeRepository.findTraineeByUser_Username(username)).thenReturn(trainee);
 
-        var result = traineeService.getTraineeByUsername(username, password);
-
+        var result = traineeService.getTraineeByUsername(username);
         assertNotNull(result);
         assertEquals(trainee, result);
         verify(traineeRepository, times(1)).findTraineeByUser_Username(username);
@@ -104,11 +74,9 @@ class TraineeServiceTest {
 
     @Test
     void deleteTraineeByUsername_Test() {
-        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
         when(traineeRepository.findTraineeByUser_Username(username)).thenReturn(trainee);
 
-        traineeService.deleteTraineeByUsername(username, password);
-
+        traineeService.deleteTraineeByUsername(username);
         verify(traineeRepository, times(1)).delete(trainee);
     }
 
@@ -116,9 +84,7 @@ class TraineeServiceTest {
     void switchTraineeActivation_Test() {
         boolean isActive = true;
 
-        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
-        traineeService.switchTraineeActivation(username, isActive, password);
-
+        traineeService.switchTraineeActivation(username, isActive);
         verify(traineeRepository, times(1)).switchActivation(username, isActive);
     }
 
@@ -129,7 +95,6 @@ class TraineeServiceTest {
                 TestDataFactory.createTraining(TestDataFactory.createTrainer(TestDataFactory.createUser("John.Doe"), trainingType))
         );
 
-        when(authService.isAuthenticateUser(trainingRequest.username(), trainingRequest.password())).thenReturn(true);
         when(traineeRepository.findTrainingsByTraineeAndDateRange(
                 trainingRequest.username(),
                 trainingRequest.periodFrom(),
@@ -154,12 +119,11 @@ class TraineeServiceTest {
         var trainer1 = TestDataFactory.createTrainer(user, trainingType);
         var trainer2 = TestDataFactory.createTrainer(user, trainingType);
 
-        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
         when(trainerService.getTrainerByUsername("trainer1")).thenReturn(trainer1);
         when(trainerService.getTrainerByUsername("trainer2")).thenReturn(trainer2);
         when(traineeRepository.findTraineeByUser_Username(username)).thenReturn(trainee);
 
-        List<TrainerDTO> result = traineeService.updateTraineeTrainers(username, trainerUsernames, password);
+        List<TrainerDTO> result = traineeService.updateTraineeTrainers(username, trainerUsernames);
 
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -170,10 +134,9 @@ class TraineeServiceTest {
     void getTraineeProfile_TraineeExists_Test() {
         trainee.setTrainers(new HashSet<>());
 
-        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
         when(traineeRepository.findTraineeByUser_Username(username)).thenReturn(trainee);
 
-        var result = traineeService.getTraineeProfile(username, password);
+        var result = traineeService.getTraineeProfile(username);
         assertNotNull(result);
         assertEquals("John", result.firstName());
         assertEquals("Doe", result.lastName());
@@ -182,11 +145,10 @@ class TraineeServiceTest {
 
     @Test
     void getTraineeProfile_TraineeNotAuthorized_Test() {
-        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
         when(traineeRepository.findTraineeByUser_Username(username)).thenReturn(null);
 
         Exception exception = assertThrows(RuntimeException.class, () -> {
-            traineeService.getTraineeProfile(username, password);
+            traineeService.getTraineeProfile(username);
         });
 
         assertEquals("401 UNAUTHORIZED", exception.getMessage());
@@ -199,10 +161,9 @@ class TraineeServiceTest {
 
         trainee.setTrainers(new HashSet<>());
 
-        when(authService.isAuthenticateUser(username, password)).thenReturn(true);
         when(traineeRepository.findTraineeByUser_Username("testuser")).thenReturn(trainee);
 
-        var result = traineeService.updateTraineeProfile(updateProfile, "password");
+        var result = traineeService.updateTraineeProfile(updateProfile);
 
         assertNotNull(result);
         assertEquals("UpdatedFirstName", result.firstName());

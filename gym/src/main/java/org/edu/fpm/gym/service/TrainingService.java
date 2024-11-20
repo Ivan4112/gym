@@ -9,9 +9,7 @@ import org.edu.fpm.gym.repository.TrainerRepository;
 import org.edu.fpm.gym.repository.TrainingRepository;
 import org.edu.fpm.gym.repository.TrainingTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -24,44 +22,34 @@ public class TrainingService {
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
-    private final AuthService authService;
 
     @Autowired
-    public TrainingService(TrainingRepository trainingRepository,
-                           TraineeRepository traineeRepository,
-                           TrainerRepository trainerRepository,
-                           TrainingTypeRepository trainingTypeRepository, AuthService authService) {
+    public TrainingService(TrainingRepository trainingRepository, TraineeRepository traineeRepository,
+                           TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository) {
         this.trainingRepository = trainingRepository;
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.trainingTypeRepository = trainingTypeRepository;
-        this.authService = authService;
     }
 
-    public String addTraining(AddTrainingDTO addTrainingDTO, String password) {
-        if (authService.isAuthenticateUser(addTrainingDTO.traineeUsername(), password)) {
+    public String addTraining(AddTrainingDTO addTrainingDTO) {
+        log.info("Adding training: {} for trainee: {} with trainer: {}", addTrainingDTO.trainingName(),
+                addTrainingDTO.traineeUsername(), addTrainingDTO.trainerUsername());
 
-            log.info("Adding training: {} for trainee: {} with trainer: {}", addTrainingDTO.trainingName(),
-                    addTrainingDTO.traineeUsername(), addTrainingDTO.trainerUsername());
+        var trainee = traineeRepository.findTraineeByUser_Username(addTrainingDTO.traineeUsername());
+        var trainer = trainerRepository.findTrainerByUser_Username(addTrainingDTO.trainerUsername());
+        var trainingType = trainingTypeRepository.findTrainingTypeByTrainingTypeName(addTrainingDTO.trainingName());
 
-            var trainee = traineeRepository.findTraineeByUser_Username(addTrainingDTO.traineeUsername());
-            var trainer = trainerRepository.findTrainerByUser_Username(addTrainingDTO.trainerUsername());
-            var trainingType = trainingTypeRepository.findTrainingTypeByTrainingTypeName(addTrainingDTO.trainingName());
+        var training = new Training();
+        training.setTrainee(trainee);
+        training.setTrainer(trainer);
+        training.setTrainingName(addTrainingDTO.trainingName());
+        training.setTrainingDate(addTrainingDTO.trainingDate());
+        training.setTrainingDuration(addTrainingDTO.trainingDuration());
+        training.setTrainingType(trainingType);
 
-            var training = new Training();
-            training.setTrainee(trainee);
-            training.setTrainer(trainer);
-            training.setTrainingName(addTrainingDTO.trainingName());
-            training.setTrainingDate(addTrainingDTO.trainingDate());
-            training.setTrainingDuration(addTrainingDTO.trainingDuration());
-            training.setTrainingType(trainingType);
-
-            trainingRepository.save(training);
-            return "Training added successfully";
-
-        } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
+        trainingRepository.save(training);
+        return "Training added successfully";
     }
 
     public List<Training> getTrainingsByTrainee(Long traineeId) {

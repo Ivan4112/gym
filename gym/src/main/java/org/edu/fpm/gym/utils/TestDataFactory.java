@@ -24,6 +24,15 @@ public class TestDataFactory {
         user.setIsActive(true);
         return user;
     }
+    public static User createUser(String username, String password) {
+        User user = new User();
+        user.setFirstName("John");
+        user.setLastName("Doe");
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setIsActive(true);
+        return user;
+    }
 
     public static TrainingType createTrainingType() {
         return new TrainingType(1 ,"Cardio");

@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.SneakyThrows;
 import org.edu.fpm.gym.dto.trainer.TrainerProfileDTO;
-import org.edu.fpm.gym.dto.training.TrainingDTO;
-import org.edu.fpm.gym.dto.training.TrainingRequestDTO;
 import org.edu.fpm.gym.service.TrainerService;
 import org.edu.fpm.gym.utils.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,8 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.util.List;
 
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -34,7 +30,7 @@ class TrainerControllerTest {
 
     private MockMvc mockMvc;
     private final String username = "john_doe";
-    private final String password = "password";
+
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(trainerController).build();
@@ -47,11 +43,10 @@ class TrainerControllerTest {
     void getTrainerProfile_Success_Test() {
         TrainerProfileDTO profileDTO = TestDataFactory.createTrainerProfileDTO();
 
-        when(trainerService.getTrainerProfile(username, password)).thenReturn(profileDTO);
+        when(trainerService.getTrainerProfile(username)).thenReturn(profileDTO);
 
         mockMvc.perform(get("/v1/gym/trainer/profile")
-                        .param("username", username)
-                        .param("password", password))
+                        .param("username", username))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Doe"))
@@ -61,31 +56,14 @@ class TrainerControllerTest {
 
     @Test
     @SneakyThrows
-    void testGetTrainerTrainings_Success() {
-        List<TrainingDTO> trainingList = TestDataFactory.createTrainingDTOList();
-        var requestDTO = new TrainingRequestDTO(username, null, null, null, null, password);
-
-        when(trainerService.getTrainingsForTrainer(requestDTO)).thenReturn(trainingList);
-
-        mockMvc.perform(get("/v1/gym/trainer/trainings")
-                        .param("username", username)
-                        .param("password", password))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].trainingName").value("Yoga"))
-                .andExpect(jsonPath("$[1].trainingName").value("Pilates"));
-    }
-
-    @Test
-    @SneakyThrows
     void switchTrainerActivation_Success_Test() {
         boolean isActive = true;
 
-        doNothing().when(trainerService).switchTrainerActivation(username, isActive, password);
+        doNothing().when(trainerService).switchTrainerActivation(username, isActive);
 
         mockMvc.perform(patch("/v1/gym/trainer/status")
                         .param("username", username)
-                        .param("isActive", String.valueOf(isActive))
-                        .param("password", password))
+                        .param("isActive", String.valueOf(isActive)))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Trainer status updated successfully"));
     }

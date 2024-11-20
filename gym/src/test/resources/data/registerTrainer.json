@@ -1,0 +1,12 @@
+{
+  "user": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "username": "john.doe",
+    "isActive": true
+  },
+  "specialization": {
+    "id": 1,
+    "trainingTypeName": "Fitness"
+  }
+}
