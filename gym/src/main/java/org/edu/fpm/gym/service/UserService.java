@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.edu.fpm.gym.entity.User;
 import org.edu.fpm.gym.repository.UserRepository;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,16 +14,16 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class UserService {
     private final UserRepository userRepository;
-
+    private final PasswordEncoder passwordEncoder;
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void createUser(User user) {
         log.info("Creating user: {}", user);
         userRepository.save(user);
-        MDC.clear();
     }
 
     public String generateUsername(String firstName, String lastName) {
@@ -43,7 +43,7 @@ public class UserService {
         var user = findUserByUsername(username);
         if (user != null) {
             log.info("Updating password for user: {}", user.getUsername());
-            user.setPassword(newPassword);
+            user.setPassword(passwordEncoder.encode(newPassword));
             updateUser(user);
             log.info("Password successfully updated for user: {}", user.getUsername());
         }else {
@@ -52,7 +52,9 @@ public class UserService {
     }
 
     public String generatePassword() {
-        return RandomStringUtils.randomAlphanumeric(10);
+        String password = RandomStringUtils.randomAlphanumeric(10);
+        log.info("Generated password: {}", password);
+        return passwordEncoder.encode(password);
     }
 
     public boolean existsUserByUsername(String username) {

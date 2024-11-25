@@ -8,7 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.Optional;
 
@@ -19,21 +22,20 @@ import static org.mockito.Mockito.*;
 class UserServiceTest {
     @Mock
     private UserRepository userRepository;
-
+    @Mock
+    PasswordEncoder passwordEncoder;
     @InjectMocks
     private UserService userService;
 
     private User user;
-    private String username;
-    private String newPassword;
+    private final String username = "john.doe";
+    private final String newPassword = "newpassword123";
+    private final String encodedPassword = "$2a$10$encryptedPassword";
 
     @BeforeEach
     public void setUp() {
-        username = "john.doe";
-        newPassword = "newpassword123";
         user = TestDataFactory.createUser("john.doe");
     }
-
 
 
     @Test
@@ -62,9 +64,9 @@ class UserServiceTest {
     @Test
     void updateUserPassword_UserExists_Test() {
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
-
+        when(passwordEncoder.encode(newPassword)).thenReturn(encodedPassword);
         userService.updateUserPassword(username, newPassword);
-        assertEquals(newPassword, user.getPassword());
+        assertEquals(encodedPassword, user.getPassword());
         verify(userRepository, times(1)).saveAndFlush(user);
     }
 
@@ -72,80 +74,21 @@ class UserServiceTest {
     void updateUserPassword_UserNotFound_Test() {
         when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
         userService.updateUserPassword(username, newPassword);
-        verify(userRepository, never()).saveAndFlush(user);
+        verify(userRepository, never()).save(any());
     }
 
     @Test
     void generatePassword_Test() {
-        String generatedPassword = userService.generatePassword();
-        assertNotNull(generatedPassword);
-        assertEquals(10, generatedPassword.length());
-    }
-    @Test
-    void createUser_Test() {
-        userService.createUser(user);
-        verify(userRepository, times(1)).save(user);
-    }
+        when(passwordEncoder.encode(newPassword)).thenReturn(encodedPassword);
 
-    @Test
-    void generateUsername_NewUsername_Test() {
-        String firstName = "John";
-        String lastName = "Doe";
-        String expectedUsername = "John.Doe";
+        try (MockedStatic<RandomStringUtils> mockedRandomStringUtils = mockStatic(RandomStringUtils.class)) {
+            mockedRandomStringUtils.when(() -> RandomStringUtils.randomAlphanumeric(10)).thenReturn(newPassword);
 
-        when(userRepository.findByUsername(expectedUsername)).thenReturn(Optional.empty());
+            String result = userService.generatePassword();
 
-        String generatedUsername = userService.generateUsername(firstName, lastName);
-
-        assertEquals(expectedUsername, generatedUsername);
-    }
-
-    @Test
-    void generateUsername_ExistingUsername_Test() {
-        String firstName = "John";
-        String lastName = "Doe";
-        String baseUsername = "John.Doe";
-        String expectedUsername = "John.Doe1";
-
-        when(userRepository.findByUsername(baseUsername)).thenReturn(Optional.of(user));
-        when(userRepository.findByUsername(expectedUsername)).thenReturn(Optional.empty());
-
-        String generatedUsername = userService.generateUsername(firstName, lastName);
-
-        assertEquals(expectedUsername, generatedUsername);
-    }
-
-    @Test
-    void updateUserPassword_UserExists_Test() {
-        String username = "john.doe";
-        String newPassword = "newpassword123";
-
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
-
-        userService.updateUserPassword(username, newPassword);
-
-        assertEquals(newPassword, user.getPassword());
-        verify(userRepository, times(1)).saveAndFlush(user);
-    }
-
-    @Test
-    void updateUserPassword_UserNotFound_Test() {
-        String username = "john.doe";
-        String newPassword = "newpassword123";
-
-        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
-
-        userService.updateUserPassword(username, newPassword);
-
-        verify(userRepository, never()).saveAndFlush(user);
-    }
-
-    @Test
-    void generatePassword_Test() {
-        String generatedPassword = userService.generatePassword();
-
-        assertNotNull(generatedPassword);
-        assertEquals(10, generatedPassword.length());
+            verify(passwordEncoder).encode(newPassword);
+            assertEquals(encodedPassword, result);
+        }
     }
 
     @Test

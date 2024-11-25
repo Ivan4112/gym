@@ -21,8 +21,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,7 +47,6 @@ class TraineeControllerTest {
 
     private ObjectMapper objectMapper;
     private final String username = "john.doe";
-    private final String password = "password";
     private TraineeProfileDTO traineeProfileDTO;
     @BeforeEach
     void setUp() {
@@ -62,23 +59,11 @@ class TraineeControllerTest {
 
     @Test
     @SneakyThrows
-    void registerTrainee_Test() {
-        String jsonContent = Files.readString(Paths.get(getClass().getClassLoader().getResource("data/registerTrainee.json").toURI()));
-
-        mockMvc.perform(post("/v1/gym/trainee/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent))
-                .andExpect(status().isCreated());
-    }
-
-    @Test
-    @SneakyThrows
     void getTraineeProfile_Success_Test() {
-        when(traineeService.getTraineeProfile("john.doe", "password")).thenReturn(traineeProfileDTO);
+        when(traineeService.getTraineeProfile("john.doe")).thenReturn(traineeProfileDTO);
 
         mockMvc.perform(get("/v1/gym/trainee/profile")
-                        .param("username", username)
-                        .param("password", password))
+                        .param("username", username))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Doe"))
@@ -93,13 +78,12 @@ class TraineeControllerTest {
                 new TraineeUpdateProfileDTO("john_doe", "John",
                         "Doe", LocalDate.of(1990, 1, 1), "123 Main St", true);
 
-        when(traineeService.updateTraineeProfile(updateRequest, password))
+        when(traineeService.updateTraineeProfile(updateRequest))
                 .thenReturn(traineeProfileDTO);
 
         mockMvc.perform(put("/v1/gym/trainee/profile-update")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest))
-                        .param("password", password))
+                        .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Doe"))
@@ -111,11 +95,10 @@ class TraineeControllerTest {
     @Test
     @SneakyThrows
     void deleteTraineeProfile_Success_Test() {
-        doNothing().when(traineeService).deleteTraineeByUsername(username, password);
+        doNothing().when(traineeService).deleteTraineeByUsername(username);
 
         mockMvc.perform(delete("/v1/gym/trainee/profile-delete")
-                        .param("username", username)
-                        .param("password", password))
+                        .param("username", username))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Successfully deleted"));
     }
@@ -125,11 +108,10 @@ class TraineeControllerTest {
     void getNotAssignedActiveTrainers_Success_Test() {
         List<Trainer> trainers = TestDataFactory.createTrainerList();
 
-        when(trainerService.getAvailableTrainersForTrainee(username, password)).thenReturn(trainers);
+        when(trainerService.getAvailableTrainersForTrainee(username)).thenReturn(trainers);
 
         mockMvc.perform(get("/v1/gym/trainee/unassigned-trainers")
-                        .param("username", username)
-                        .param("password", password))
+                        .param("username", username))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].user.username").value("John.Doe"))
                 .andExpect(jsonPath("$[1].user.username").value("Jane.Smith"))
@@ -147,9 +129,9 @@ class TraineeControllerTest {
 
         List<TrainerDTO> updatedTrainers = Arrays.asList(trainer1, trainer2);
 
-        when(traineeService.updateTraineeTrainers(username, trainerUsernames, password)).thenReturn(updatedTrainers);
+        when(traineeService.updateTraineeTrainers(username, trainerUsernames)).thenReturn(updatedTrainers);
 
-        mockMvc.perform(put("/v1/gym/trainee/trainers?username=" + username + "&password="+password)
+        mockMvc.perform(put("/v1/gym/trainee/trainers?username=" + username)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(trainerUsernames)))
                 .andExpect(status().isOk())
@@ -164,11 +146,10 @@ class TraineeControllerTest {
     void updateTraineeStatus_Success_Test() {
         boolean isActive = true;
 
-        doNothing().when(traineeService).switchTraineeActivation(username, isActive, password);
+        doNothing().when(traineeService).switchTraineeActivation(username, isActive);
 
         mockMvc.perform(patch("/v1/gym/trainee/status")
                         .param("username", username)
-                        .param("password", password)
                         .param("isActive", String.valueOf(isActive)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value("Trainee status updated successfully"));

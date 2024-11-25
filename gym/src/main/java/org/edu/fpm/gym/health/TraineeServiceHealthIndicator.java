@@ -16,7 +16,7 @@ public class TraineeServiceHealthIndicator implements HealthIndicator {
     @Override
     public Health health() {
         try {
-            traineeService.getTraineeByUsername("testUser", "password");
+            traineeService.getTraineeByUsername("testUser");
             return Health.up()
                     .withDetail("TraineeService", "Operational")
                     .build();

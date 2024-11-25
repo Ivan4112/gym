@@ -1,6 +1,5 @@
 package org.edu.fpm.gym.repository;
 
-import lombok.NonNull;
 import org.edu.fpm.gym.entity.TrainingType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
