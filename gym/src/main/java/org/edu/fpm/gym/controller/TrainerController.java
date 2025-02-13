@@ -3,6 +3,7 @@ package org.edu.fpm.gym.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import org.edu.fpm.gym.dto.TrainerWorkloadSummaryDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerProfileDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerUpdateProfileDTO;
 import org.edu.fpm.gym.dto.training.TrainingDTO;
@@ -32,6 +33,11 @@ public class TrainerController {
     @GetMapping("/profile")
     public TrainerProfileDTO getTrainerProfile(@Valid @NotEmpty @RequestParam("username") String username) {
         return trainerService.getTrainerProfile(username);
+    }
+
+    @GetMapping("/monthly-summary")
+    public TrainerWorkloadSummaryDTO getMonthlyWorkload(@Valid @NotEmpty @RequestParam("username") String username) {
+        return trainerService.getTrainerMonthlyWorkload(username);
     }
 
     @Operation(summary = "Update trainer profile")

@@ -2,6 +2,7 @@ package org.edu.fpm.gym.service;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.edu.fpm.gym.dto.TrainerWorkloadSummaryDTO;
 import org.edu.fpm.gym.dto.trainer.TraineeForTrainerDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerProfileDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerUpdateProfileDTO;
@@ -11,11 +12,15 @@ import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.entity.Training;
 import org.edu.fpm.gym.repository.TrainerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,12 +28,39 @@ import java.util.stream.Collectors;
 @Transactional
 public class TrainerService {
 
+    @Value("${external.microservice.url}")
+    private String externalServiceUrl;
+
     private final TrainerRepository trainerRepository;
+    private final RestTemplate restTemplate;
 
 
     @Autowired
-    public TrainerService(TrainerRepository trainerRepository) {
+    public TrainerService(TrainerRepository trainerRepository, RestTemplate restTemplate) {
         this.trainerRepository = trainerRepository;
+        this.restTemplate = restTemplate;
+    }
+
+
+    public TrainerWorkloadSummaryDTO getTrainerMonthlyWorkload(String username) {
+        log.info("Fetching monthly workload summary for trainer with username: {}", username);
+        String url = externalServiceUrl + "/monthly-summary?username=" + username;
+
+
+        try {
+            ResponseEntity<TrainerWorkloadSummaryDTO> response = restTemplate.getForEntity(url, TrainerWorkloadSummaryDTO.class);
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                log.info("Successfully fetched monthly workload summary for username: {}", username);
+                return response.getBody();
+            }
+        } catch (RestClientException ex) {
+            log.error("Error fetching monthly workload summary for username: {}. Exception: {}", username, ex.getMessage());
+        }
+
+        log.warn("Returning empty summary for username: {}", username);
+        return new TrainerWorkloadSummaryDTO(username, "", "", false, new HashMap<>());
+
     }
 
     public Trainer getTrainerByUsername(String username) {

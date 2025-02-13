@@ -6,6 +6,7 @@ import org.edu.fpm.gym.dto.training.AddTrainingDTO;
 import org.edu.fpm.gym.service.TrainingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,5 +30,18 @@ public class TrainingController {
     @ResponseStatus(HttpStatus.CREATED)
     public String addTraining(@RequestBody AddTrainingDTO request) {
         return trainingService.addTraining(request);
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteTraining(@RequestParam("id_training") Long id) {
+        try {
+            trainingService.deleteTraining(id);
+            return ResponseEntity.ok("Training deleted successfully.");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (Exception e) {
+            log.error("Failed to delete training with ID {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete training.");
+        }
     }
 }

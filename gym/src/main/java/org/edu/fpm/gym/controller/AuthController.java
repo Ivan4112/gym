@@ -9,14 +9,12 @@ import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import static org.edu.fpm.gym.utils.ApiPaths.AUTH;
 
 @RestController
 @RequestMapping(AUTH)
-@PreAuthorize("isAuthenticated()")
 @Slf4j
 public class AuthController {
     private final AuthService authService;
@@ -35,6 +33,8 @@ public class AuthController {
         return ResponseEntity.ok(token);
     }
 
+    // pas: FwZtRXxCCg
+    // username: John.Doe8
     @Operation(summary = "Register a new trainee")
     @PostMapping("/register/trainee")
     @ResponseStatus(HttpStatus.CREATED)
@@ -42,6 +42,8 @@ public class AuthController {
         return authService.createTrainee(traineeDto);
     }
 
+//    login: test.lastName7
+//    pass: UJeZDn75Kx
     @Operation(summary = "Register a new trainer")
     @PostMapping("/register/trainer")
     @ResponseStatus(HttpStatus.CREATED)
