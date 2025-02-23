@@ -1,7 +1,9 @@
 package org.edu.fpm.gym.utils;
 
+import org.edu.fpm.gym.dto.TrainerWorkloadSummaryDTO;
 import org.edu.fpm.gym.dto.trainee.TraineeDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerProfileDTO;
+import org.edu.fpm.gym.dto.trainer.TrainerUpdateProfileDTO;
 import org.edu.fpm.gym.dto.training.TrainingDTO;
 import org.edu.fpm.gym.dto.training.TrainingRequestDTO;
 import org.edu.fpm.gym.dto.trainingType.TrainingTypeDTO;
@@ -9,10 +11,7 @@ import org.edu.fpm.gym.dto.user.UserDTO;
 import org.edu.fpm.gym.entity.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class TestDataFactory {
     public static User createUser(String username) {
@@ -115,5 +114,14 @@ public class TestDataFactory {
     public static TrainingRequestDTO createTrainingRequestDTO(){
         return new TrainingRequestDTO("john.doe", LocalDate.of(2024, 10, 10),
                 LocalDate.of(2024, 11, 14), "trainerName", createTrainingType(), "password");
+    }
+
+    public static TrainerWorkloadSummaryDTO createTrainerWorkloadSummaryDTO(String trainerUsername) {
+        return new TrainerWorkloadSummaryDTO(
+                trainerUsername,
+                "firstname",
+                "lastname",
+                true,
+                new HashMap<>());
     }
 }

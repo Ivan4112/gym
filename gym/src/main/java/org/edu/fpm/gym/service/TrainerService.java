@@ -11,48 +11,40 @@ import org.edu.fpm.gym.dto.training.TrainingRequestDTO;
 import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.entity.Training;
 import org.edu.fpm.gym.repository.TrainerRepository;
+import org.edu.fpm.gym.repository.TrainingFeignClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @Transactional
 public class TrainerService {
-
-    @Value("${external.microservice.url}")
-    private String externalServiceUrl;
-
     private final TrainerRepository trainerRepository;
-    private final RestTemplate restTemplate;
-
+    private final TrainingFeignClient feignClient;
 
     @Autowired
-    public TrainerService(TrainerRepository trainerRepository, RestTemplate restTemplate) {
+    public TrainerService(TrainerRepository trainerRepository, TrainingFeignClient feignClient) {
         this.trainerRepository = trainerRepository;
-        this.restTemplate = restTemplate;
+        this.feignClient = feignClient;
     }
 
 
     public TrainerWorkloadSummaryDTO getTrainerMonthlyWorkload(String username) {
         log.info("Fetching monthly workload summary for trainer with username: {}", username);
-        String url = externalServiceUrl + "/monthly-summary?username=" + username;
-
 
         try {
-            ResponseEntity<TrainerWorkloadSummaryDTO> response = restTemplate.getForEntity(url, TrainerWorkloadSummaryDTO.class);
-
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+            TrainerWorkloadSummaryDTO response = feignClient.getMonthlyWorkload(username);
+            log.info("Response -> {}", response);
+            if (response != null) {
                 log.info("Successfully fetched monthly workload summary for username: {}", username);
-                return response.getBody();
+                return response;
             }
         } catch (RestClientException ex) {
             log.error("Error fetching monthly workload summary for username: {}. Exception: {}", username, ex.getMessage());

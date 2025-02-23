@@ -1,6 +1,7 @@
 package org.edu.fpm.gym.controller;
 
 import lombok.SneakyThrows;
+import org.edu.fpm.gym.dto.auth.LoginRequest;
 import org.edu.fpm.gym.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -15,11 +17,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
@@ -41,17 +42,18 @@ class AuthControllerTest {
     @Test
     @SneakyThrows
     void login_Success_Test() {
-        String token = "eyJhbGciOiJIUzI1NiJ9";
         String username = "testUser";
-        String password = "password";
+        String password = "testPassword";
+        String expectedToken = "mockToken";
+        LoginRequest loginRequest = new LoginRequest(username, password);
 
-        when(authService.authenticateUser(username, password)).thenReturn(token);
+        when(authService.authenticateUser(username, password)).thenReturn(expectedToken);
 
-        mockMvc.perform(get("/v1/gym/auth/login")
-                .param("username", username)
-                .param("password", password))
-                .andExpect(status().isOk())
-                .andExpect(content().string(token));
+        ResponseEntity<String> response = authController.login(loginRequest);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(expectedToken, response.getBody());
+        verify(authService, times(1)).authenticateUser(username, password);
     }
 
     @Test

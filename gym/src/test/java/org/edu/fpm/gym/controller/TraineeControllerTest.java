@@ -6,6 +6,8 @@ import lombok.SneakyThrows;
 import org.edu.fpm.gym.dto.trainee.TraineeProfileDTO;
 import org.edu.fpm.gym.dto.trainee.TraineeUpdateProfileDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerDTO;
+import org.edu.fpm.gym.dto.training.TrainingDTO;
+import org.edu.fpm.gym.dto.training.TrainingRequestDTO;
 import org.edu.fpm.gym.dto.user.UserDTO;
 import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.service.TraineeService;
@@ -26,8 +28,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -153,5 +155,27 @@ class TraineeControllerTest {
                         .param("isActive", String.valueOf(isActive)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value("Trainee status updated successfully"));
+    }
+
+    @Test
+    void getTraineeTrainingsList_Success_Test() throws Exception {
+        List<TrainingDTO> responseDTOs = List.of(
+                TestDataFactory.createTrainingDTO("john", "Doe"),
+                TestDataFactory.createTrainingDTO("john", "Who"));
+
+        when(traineeService.getTraineeTrainings(any(TrainingRequestDTO.class)))
+                .thenReturn(responseDTOs);
+
+        mockMvc.perform(get("/v1/gym/trainee/trainings")
+                        .param("username", "traineeUsername")
+                        .param("startDate", LocalDate.now().minusDays(30).toString())
+                        .param("endDate", LocalDate.now().toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].trainingType.trainingTypeName").value("Cardio"))
+                .andExpect(jsonPath("$[1].trainingType.trainingTypeName").value("Cardio"));
+
+        verify(traineeService, times(1)).getTraineeTrainings(any(TrainingRequestDTO.class));
     }
 }

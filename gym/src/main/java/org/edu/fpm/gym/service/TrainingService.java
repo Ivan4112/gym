@@ -5,19 +5,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.edu.fpm.gym.dto.training.AddTrainingDTO;
 import org.edu.fpm.gym.dto.training.ExternalTrainingServiceDTO;
 import org.edu.fpm.gym.entity.Training;
-import org.edu.fpm.gym.repository.TraineeRepository;
-import org.edu.fpm.gym.repository.TrainerRepository;
-import org.edu.fpm.gym.repository.TrainingRepository;
-import org.edu.fpm.gym.repository.TrainingTypeRepository;
+import org.edu.fpm.gym.repository.*;
+import org.edu.fpm.gym.utils.ActionType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -28,20 +25,17 @@ public class TrainingService {
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
-    private final RestTemplate restTemplate;
-
-    @Value("${external.microservice.url}")
-    private String externalServiceUrl;
+    private final TrainingFeignClient feignClient;
 
     @Autowired
     public TrainingService(TrainingRepository trainingRepository, TraineeRepository traineeRepository,
                            TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository,
-                           RestTemplate restTemplate) {
+                           TrainingFeignClient feignClient) {
         this.trainingRepository = trainingRepository;
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.trainingTypeRepository = trainingTypeRepository;
-        this.restTemplate = restTemplate;
+        this.feignClient = feignClient;
     }
 
     public String addTraining(AddTrainingDTO addTrainingDTO) {
@@ -61,18 +55,18 @@ public class TrainingService {
         training.setTrainingType(trainingType);
 
         trainingRepository.save(training);
-        sendTrainingDataToExternalService(training, "ADD");
+        sendTrainingDataToExternalService(training, ActionType.ADD);
         return "Training added successfully";
     }
 
-    public void deleteTraining(Long trainingId) {
+    public void deleteTraining(Integer trainingId) {
         Optional<Training> trainingOptional = trainingRepository.findById(trainingId);
         if (trainingOptional.isPresent()) {
             Training training = trainingOptional.get();
             LocalDate trainingDate = training.getTrainingDate();
 
             if (trainingDate.isBefore(LocalDate.now())) {
-                String message = String.format("Cannot delete training with ID %d. It has already been completed on %s.", trainingId, trainingDate);
+                String message = String.format("Cannot delete training with ID %d. It has already been completed on %s", trainingId, trainingDate);
                 log.error(message);
                 throw new IllegalStateException(message);
             }
@@ -82,7 +76,7 @@ public class TrainingService {
                 log.error(message);
                 throw new IllegalStateException(message);
             }
-            sendTrainingDataToExternalService(training, "DELETE");
+            sendTrainingDataToExternalService(training, ActionType.DELETE);
             trainingRepository.deleteById(trainingId);
             log.info("Training with ID {} deleted successfully.", trainingId);
         } else {
@@ -90,23 +84,38 @@ public class TrainingService {
         }
     }
 
-    public List<Training> getTrainingsByTrainee(Long traineeId) {
-        log.info("Fetching trainings for trainee with ID: {}", traineeId);
-        List<Training> trainingList = trainingRepository.findByTraineeId(traineeId);
-        log.info("Found {} trainings for trainee with ID: {}", trainingList.size(), traineeId);
-
-        return trainingList;
-    }
-
-    public List<Training> getTrainingsByTrainer(Long trainerId) {
+    public ResponseEntity<List<ExternalTrainingServiceDTO>> getTrainingsByTrainer(Integer trainerId) {
         List<Training> trainingList = trainingRepository.findByTrainerId(trainerId);
         log.info("Found {} trainings for trainer with ID: {}", trainingList.size(), trainerId);
-        return trainingList;
+        if (trainingList.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        List<ExternalTrainingServiceDTO> trainingDTOs = trainingList.stream().map(training -> new ExternalTrainingServiceDTO(
+                training.getId(),
+                training.getTrainer().getUser().getUsername(),
+                training.getTrainer().getUser().getFirstName(),
+                training.getTrainer().getUser().getLastName(),
+                training.getTrainer().getUser().getIsActive(),
+                training.getTrainingDate(),
+                training.getTrainingDuration(),
+                ActionType.ADD
+        )).collect(Collectors.toList());
+
+        try {
+            ResponseEntity<String> response = feignClient.initializeTrainerWorkload(trainingDTOs);
+            log.info("TrainerWorkloadService response: {}", response.getStatusCode());
+        } catch (Exception e) {
+            log.error("Failed to initialize TrainerWorkloadService", e);
+        }
+
+        return ResponseEntity.ok(trainingDTOs);
     }
 
-    private void sendTrainingDataToExternalService(Training training, String actionType) {
+    private void sendTrainingDataToExternalService(Training training, ActionType actionType) {
         try {
             ExternalTrainingServiceDTO request = new ExternalTrainingServiceDTO(
+                    training.getId(),
                     training.getTrainer().getUser().getUsername(),
                     training.getTrainer().getUser().getFirstName(),
                     training.getTrainer().getUser().getLastName(),
@@ -117,14 +126,19 @@ public class TrainingService {
             );
             log.info("Request -> {}", request);
 
-            String url = externalServiceUrl+"/update";
-            log.info("External service URL: {}", url);
-
-            ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
+            ResponseEntity<String> response = feignClient.updateWorkload(request);
             log.info("Response -> {}", response);
             log.info("Successfully sent training data to external service. Response status: {}", response.getStatusCode());
         } catch (Exception e) {
             log.error("Failed to send training data to external service", e);
         }
+    }
+
+    public List<Training> getTrainingsByTrainee(Integer traineeId) {
+        log.info("Fetching trainings for trainee with ID: {}", traineeId);
+        List<Training> trainingList = trainingRepository.findByTraineeId(traineeId);
+        log.info("Found {} trainings for trainee with ID: {}", trainingList.size(), traineeId);
+
+        return trainingList;
     }
 }

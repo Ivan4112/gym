@@ -35,6 +35,10 @@
     <dependencies>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter</artifactId>
         </dependency>
         <dependency>
@@ -239,6 +243,8 @@
                         <exclude>**/org/edu/fpm/gym/exception/*</exclude>
                         <exclude>**/org/edu/fpm/gym/handler/*</exclude>
                         <exclude>**/org/edu/fpm/gym/repository/*</exclude>
+                        <exclude>**/org/edu/fpm/gym/health/*</exclude>
+                        <exclude>**/org/edu/fpm/gym/aspect/*</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -263,7 +269,7 @@
                                             <limit>
                                                 <counter>LINE</counter>
                                                 <value>COVEREDRATIO</value>
-                                                <minimum>0.00</minimum>
+                                                <minimum>0.80</minimum>
                                             </limit>
                                         </limits>
                                     </rule>

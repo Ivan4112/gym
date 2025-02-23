@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface TrainingRepository extends JpaRepository<Training, Long> {
-    List<Training> findByTraineeId(Long trainee_id);
-    List<Training> findByTrainerId(Long trainer_id);
+public interface TrainingRepository extends JpaRepository<Training, Integer> {
+    List<Training> findByTraineeId(Integer trainee_id);
+    List<Training> findByTrainerId(Integer trainer_id);
 }

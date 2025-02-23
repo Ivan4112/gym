@@ -2,6 +2,7 @@ package org.edu.fpm.gym.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
+import org.edu.fpm.gym.dto.auth.LoginRequest;
 import org.edu.fpm.gym.dto.trainee.TraineeDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerDTO;
 import org.edu.fpm.gym.entity.Trainee;
@@ -24,12 +25,11 @@ public class AuthController {
     }
 
     @Operation(summary = "Login to the system")
-    @GetMapping("/login")
-    public ResponseEntity<String> login(@RequestParam("username") String username,
-                                        @RequestParam("password") String password) {
-        log.info("Attempting login with username: {}", username);
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+        log.info("Attempting login with username: {}", loginRequest.username());
 
-        String token = authService.authenticateUser(username, password);
+        String token = authService.authenticateUser(loginRequest.username(), loginRequest.password());
         return ResponseEntity.ok(token);
     }
 
