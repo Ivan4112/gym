@@ -2,6 +2,7 @@ package org.edu.fpm.gym.service;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.edu.fpm.gym.dto.TrainerWorkloadSummaryDTO;
 import org.edu.fpm.gym.dto.trainer.TraineeForTrainerDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerProfileDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerUpdateProfileDTO;
@@ -10,11 +11,14 @@ import org.edu.fpm.gym.dto.training.TrainingRequestDTO;
 import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.entity.Training;
 import org.edu.fpm.gym.repository.TrainerRepository;
+import org.edu.fpm.gym.repository.TrainingFeignClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,13 +26,33 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional
 public class TrainerService {
-
     private final TrainerRepository trainerRepository;
-
+    private final TrainingFeignClient feignClient;
 
     @Autowired
-    public TrainerService(TrainerRepository trainerRepository) {
+    public TrainerService(TrainerRepository trainerRepository, TrainingFeignClient feignClient) {
         this.trainerRepository = trainerRepository;
+        this.feignClient = feignClient;
+    }
+
+
+    public TrainerWorkloadSummaryDTO getTrainerMonthlyWorkload(String username) {
+        log.info("Fetching monthly workload summary for trainer with username: {}", username);
+
+        try {
+            TrainerWorkloadSummaryDTO response = feignClient.getMonthlyWorkload(username);
+            log.info("Response -> {}", response);
+            if (response != null) {
+                log.info("Successfully fetched monthly workload summary for username: {}", username);
+                return response;
+            }
+        } catch (RestClientException ex) {
+            log.error("Error fetching monthly workload summary for username: {}. Exception: {}", username, ex.getMessage());
+        }
+
+        log.warn("Returning empty summary for username: {}", username);
+        return new TrainerWorkloadSummaryDTO(username, "", "", false, new HashMap<>());
+
     }
 
     public Trainer getTrainerByUsername(String username) {

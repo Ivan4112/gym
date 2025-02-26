@@ -1,6 +1,7 @@
 package org.edu.fpm.gym.service;
 
 import lombok.SneakyThrows;
+import org.edu.fpm.gym.dto.TrainerWorkloadSummaryDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerUpdateProfileDTO;
 import org.edu.fpm.gym.dto.training.TrainingDTO;
 import org.edu.fpm.gym.entity.Trainee;
@@ -8,6 +9,7 @@ import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.entity.TrainingType;
 import org.edu.fpm.gym.entity.User;
 import org.edu.fpm.gym.repository.TrainerRepository;
+import org.edu.fpm.gym.repository.TrainingFeignClient;
 import org.edu.fpm.gym.utils.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,10 +18,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -28,6 +33,8 @@ import static org.mockito.Mockito.*;
 class TrainerServiceTest {
     @Mock
     private TrainerRepository trainerRepository;
+    @Mock
+    private TrainingFeignClient feignClient;
 
     @InjectMocks
     private TrainerService trainerService;
@@ -47,6 +54,43 @@ class TrainerServiceTest {
 
         trainer = TestDataFactory.createTrainer(TestDataFactory.createUser("john.doe"), trainingType);
     }
+
+    @Test
+    void getTrainerMonthlyWorkload_Success_Test() {
+        String username = "trainer1";
+        Map<Integer, Map<Integer, Integer>> mockMonthlySummary = new HashMap<>();
+        mockMonthlySummary.put(1, Map.of(1, 10, 2, 20));
+        TrainerWorkloadSummaryDTO mockResponse = new TrainerWorkloadSummaryDTO(
+                username, "John", "Doe", true, mockMonthlySummary);
+
+        when(feignClient.getMonthlyWorkload(username)).thenReturn(mockResponse);
+
+        TrainerWorkloadSummaryDTO result = trainerService.getTrainerMonthlyWorkload(username);
+
+        assertNotNull(result);
+        assertEquals(username, result.username());
+        assertEquals("John", result.firstName());
+        assertEquals("Doe", result.lastName());
+        assertTrue(result.isActive());
+        assertEquals(mockMonthlySummary, result.monthlySummary());
+    }
+
+    @Test
+    void getTrainerMonthlyWorkload_Fail_Test() {
+        String username = "trainer2";
+
+        when(feignClient.getMonthlyWorkload(username)).thenThrow(new RestClientException("Feign client error"));
+
+        TrainerWorkloadSummaryDTO result = trainerService.getTrainerMonthlyWorkload(username);
+
+        assertNotNull(result);
+        assertEquals(username, result.username());
+        assertEquals("", result.firstName());
+        assertEquals("", result.lastName());
+        assertFalse(result.isActive());
+        assertTrue(result.monthlySummary().isEmpty());
+    }
+
 
     @Test
     void getTrainerByUsername_Test() {

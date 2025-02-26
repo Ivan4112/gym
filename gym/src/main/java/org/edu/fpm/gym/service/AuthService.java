@@ -51,8 +51,6 @@ public class AuthService {
         this.userDetailsService = userDetailsService;
     }
 
-    // pas: FwZtRXxCCg
-    // username: John.Doe8
     public String authenticateUser(String username, String password) {
         try {
             userDetailsService.loadUserByUsername(username);

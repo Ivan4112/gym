@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class LoginAttemptService {
     private final int MAX_ATTEMPTS = 3;
-    private final long BLOCK_TIME_MS = TimeUnit.MINUTES.toMillis(5);
+    private final long BLOCK_TIME_MS = TimeUnit.SECONDS.toMillis(5);
 
     private final ConcurrentHashMap<String, Integer> attempts = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Long> blockedUsers = new ConcurrentHashMap<>();
