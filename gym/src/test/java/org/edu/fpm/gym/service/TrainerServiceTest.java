@@ -9,7 +9,8 @@ import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.entity.TrainingType;
 import org.edu.fpm.gym.entity.User;
 import org.edu.fpm.gym.repository.TrainerRepository;
-import org.edu.fpm.gym.repository.TrainingFeignClient;
+import org.edu.fpm.gym.service.messaging.listener.TrainerEventListener;
+import org.edu.fpm.gym.service.messaging.producer.TrainerEventProducer;
 import org.edu.fpm.gym.utils.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,13 +19,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -34,8 +35,9 @@ class TrainerServiceTest {
     @Mock
     private TrainerRepository trainerRepository;
     @Mock
-    private TrainingFeignClient feignClient;
-
+    TrainerEventListener trainerEventListener;
+    @Mock
+    TrainerEventProducer trainerEventProducer;
     @InjectMocks
     private TrainerService trainerService;
 
@@ -57,13 +59,13 @@ class TrainerServiceTest {
 
     @Test
     void getTrainerMonthlyWorkload_Success_Test() {
-        String username = "trainer1";
         Map<Integer, Map<Integer, Integer>> mockMonthlySummary = new HashMap<>();
         mockMonthlySummary.put(1, Map.of(1, 10, 2, 20));
         TrainerWorkloadSummaryDTO mockResponse = new TrainerWorkloadSummaryDTO(
                 username, "John", "Doe", true, mockMonthlySummary);
 
-        when(feignClient.getMonthlyWorkload(username)).thenReturn(mockResponse);
+        CompletableFuture<TrainerWorkloadSummaryDTO> futureResponse = CompletableFuture.completedFuture(mockResponse);
+        when(trainerEventListener.getFutureResponse(username)).thenReturn(futureResponse);
 
         TrainerWorkloadSummaryDTO result = trainerService.getTrainerMonthlyWorkload(username);
 
@@ -77,9 +79,10 @@ class TrainerServiceTest {
 
     @Test
     void getTrainerMonthlyWorkload_Fail_Test() {
-        String username = "trainer2";
+        CompletableFuture<TrainerWorkloadSummaryDTO> failedFuture = new CompletableFuture<>();
+        failedFuture.completeExceptionally(new RuntimeException("Timeout occurred"));
 
-        when(feignClient.getMonthlyWorkload(username)).thenThrow(new RestClientException("Feign client error"));
+        when(trainerEventListener.getFutureResponse(username)).thenReturn(failedFuture);
 
         TrainerWorkloadSummaryDTO result = trainerService.getTrainerMonthlyWorkload(username);
 

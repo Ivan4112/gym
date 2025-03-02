@@ -6,6 +6,7 @@ import org.edu.fpm.gym.dto.training.AddTrainingDTO;
 import org.edu.fpm.gym.dto.training.ExternalTrainingServiceDTO;
 import org.edu.fpm.gym.entity.Training;
 import org.edu.fpm.gym.repository.*;
+import org.edu.fpm.gym.service.messaging.producer.TrainingEventProducer;
 import org.edu.fpm.gym.utils.ActionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,17 +26,17 @@ public class TrainingService {
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
-    private final TrainingFeignClient feignClient;
+    private final TrainingEventProducer trainingEventProducer;
 
     @Autowired
     public TrainingService(TrainingRepository trainingRepository, TraineeRepository traineeRepository,
                            TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository,
-                           TrainingFeignClient feignClient) {
+                           TrainingEventProducer trainingEventProducer) {
         this.trainingRepository = trainingRepository;
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.trainingTypeRepository = trainingTypeRepository;
-        this.feignClient = feignClient;
+        this.trainingEventProducer = trainingEventProducer;
     }
 
     public String addTraining(AddTrainingDTO addTrainingDTO) {
@@ -103,8 +104,10 @@ public class TrainingService {
         )).collect(Collectors.toList());
 
         try {
-            ResponseEntity<String> response = feignClient.initializeTrainerWorkload(trainingDTOs);
-            log.info("TrainerWorkloadService response: {}", response.getStatusCode());
+            for (ExternalTrainingServiceDTO training : trainingDTOs) {
+                trainingEventProducer.sendTrainingUpdateEvent(training);
+            }
+            log.info("Sent data to external service");
         } catch (Exception e) {
             log.error("Failed to initialize TrainerWorkloadService", e);
         }
@@ -126,9 +129,8 @@ public class TrainingService {
             );
             log.info("Request -> {}", request);
 
-            ResponseEntity<String> response = feignClient.updateWorkload(request);
-            log.info("Response -> {}", response);
-            log.info("Successfully sent training data to external service. Response status: {}", response.getStatusCode());
+            trainingEventProducer.sendTrainingUpdateEvent(request);
+            log.info("Successfully sent training data to external service.");
         } catch (Exception e) {
             log.error("Failed to send training data to external service", e);
         }

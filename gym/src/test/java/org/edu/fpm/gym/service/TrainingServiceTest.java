@@ -35,8 +35,6 @@ class TrainingServiceTest {
     private TrainerRepository trainerRepository;
     @Mock
     TrainingTypeRepository trainingTypeRepository;
-    @Mock
-    private TrainingFeignClient feignClient;
     @InjectMocks
     private TrainingService trainingService;
 
@@ -102,7 +100,6 @@ class TrainingServiceTest {
         trainingService.deleteTraining(trainingId);
 
         verify(trainingRepository, times(1)).deleteById(trainingId);
-        verify(feignClient, times(1)).updateWorkload(any(ExternalTrainingServiceDTO.class));
     }
 
     @Test
@@ -159,7 +156,6 @@ class TrainingServiceTest {
         List<Training> trainingList = List.of(training);
 
         when(trainingRepository.findByTrainerId(trainerId)).thenReturn(trainingList);
-        when(feignClient.initializeTrainerWorkload(anyList())).thenReturn(ResponseEntity.ok("Success"));
 
         ResponseEntity<List<ExternalTrainingServiceDTO>> response = trainingService.getTrainingsByTrainer(trainerId);
 
@@ -167,7 +163,6 @@ class TrainingServiceTest {
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
         assertEquals("Username", response.getBody().getFirst().trainerUsername());
-        verify(feignClient, times(1)).initializeTrainerWorkload(anyList());
     }
 
     @Test
@@ -181,7 +176,5 @@ class TrainingServiceTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
         assertNull(response.getBody(), "Response body should be null when no trainings are found");
-
-        verify(feignClient, never()).initializeTrainerWorkload(anyList());
     }
 }

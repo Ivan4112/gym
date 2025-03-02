@@ -11,7 +11,8 @@ import org.edu.fpm.gym.dto.training.TrainingRequestDTO;
 import org.edu.fpm.gym.entity.Trainer;
 import org.edu.fpm.gym.entity.Training;
 import org.edu.fpm.gym.repository.TrainerRepository;
-import org.edu.fpm.gym.repository.TrainingFeignClient;
+import org.edu.fpm.gym.service.messaging.listener.TrainerEventListener;
+import org.edu.fpm.gym.service.messaging.producer.TrainerEventProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,26 +32,30 @@ import java.util.stream.Collectors;
 @Transactional
 public class TrainerService {
     private final TrainerRepository trainerRepository;
-    private final TrainingFeignClient feignClient;
+    private final TrainerEventProducer trainerEventProducer;
+    private final TrainerEventListener trainerEventListener;
 
     @Autowired
-    public TrainerService(TrainerRepository trainerRepository, TrainingFeignClient feignClient) {
+    public TrainerService(TrainerRepository trainerRepository, TrainerEventProducer trainerEventProducer,
+                          TrainerEventListener trainerEventListener) {
         this.trainerRepository = trainerRepository;
-        this.feignClient = feignClient;
+        this.trainerEventProducer = trainerEventProducer;
+        this.trainerEventListener = trainerEventListener;
     }
 
 
     public TrainerWorkloadSummaryDTO getTrainerMonthlyWorkload(String username) {
         log.info("Fetching monthly workload summary for trainer with username: {}", username);
+        CompletableFuture<TrainerWorkloadSummaryDTO> futureResponse = trainerEventListener.getFutureResponse(username);
 
         try {
-            TrainerWorkloadSummaryDTO response = feignClient.getMonthlyWorkload(username);
-            log.info("Response -> {}", response);
+            trainerEventProducer.requestTrainerWorkload(username);
+            TrainerWorkloadSummaryDTO response = futureResponse.get(5, TimeUnit.SECONDS);
             if (response != null) {
                 log.info("Successfully fetched monthly workload summary for username: {}", username);
                 return response;
             }
-        } catch (RestClientException ex) {
+        } catch (RestClientException | InterruptedException | ExecutionException | TimeoutException ex) {
             log.error("Error fetching monthly workload summary for username: {}. Exception: {}", username, ex.getMessage());
         }
 
