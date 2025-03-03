@@ -5,7 +5,6 @@ import org.edu.fpm.gym.utils.ActionType;
 import java.time.LocalDate;
 
 public record ExternalTrainingServiceDTO(
-        Integer trainingId,
         String trainerUsername, String trainerFirstName,
         String trainerLastName, boolean isActive,
         LocalDate trainingDate, int trainingDuration, ActionType actionType) {}

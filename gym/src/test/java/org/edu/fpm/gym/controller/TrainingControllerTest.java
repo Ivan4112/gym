@@ -63,8 +63,7 @@ class TrainingControllerTest {
         Trainer trainer = TestDataFactory.createTrainer(TestDataFactory.createUser(username), TestDataFactory.createTrainingType());
         List<ExternalTrainingServiceDTO> trainings = List.of(
                 new ExternalTrainingServiceDTO(
-                        1, username,
-                        "FirstName", "LastName", true,
+                        username, "FirstName", "LastName", true,
                         LocalDate.now(), 2, ActionType.ADD));
 
         when(trainerService.getTrainerByUsername(username)).thenReturn(trainer);

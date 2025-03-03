@@ -1,9 +1,10 @@
 package org.edu.fpm.gym.utils;
 
-import org.edu.fpm.gym.dto.TrainerWorkloadSummaryDTO;
+import org.edu.fpm.gym.dto.externalservice.MonthSummaryDTO;
+import org.edu.fpm.gym.dto.externalservice.TrainerWorkloadSummaryDTO;
+import org.edu.fpm.gym.dto.externalservice.YearSummaryDTO;
 import org.edu.fpm.gym.dto.trainee.TraineeDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerProfileDTO;
-import org.edu.fpm.gym.dto.trainer.TrainerUpdateProfileDTO;
 import org.edu.fpm.gym.dto.training.TrainingDTO;
 import org.edu.fpm.gym.dto.training.TrainingRequestDTO;
 import org.edu.fpm.gym.dto.trainingType.TrainingTypeDTO;
@@ -116,12 +117,17 @@ public class TestDataFactory {
                 LocalDate.of(2024, 11, 14), "trainerName", createTrainingType(), "password");
     }
 
+
+
+
     public static TrainerWorkloadSummaryDTO createTrainerWorkloadSummaryDTO(String trainerUsername) {
         return new TrainerWorkloadSummaryDTO(
                 trainerUsername,
                 "firstname",
                 "lastname",
                 true,
-                new HashMap<>());
+                List.of(new YearSummaryDTO(2025,
+                        List.of(new MonthSummaryDTO(10, 20)))));
     }
+
 }

@@ -93,7 +93,6 @@ public class TrainingService {
         }
 
         List<ExternalTrainingServiceDTO> trainingDTOs = trainingList.stream().map(training -> new ExternalTrainingServiceDTO(
-                training.getId(),
                 training.getTrainer().getUser().getUsername(),
                 training.getTrainer().getUser().getFirstName(),
                 training.getTrainer().getUser().getLastName(),
@@ -118,7 +117,6 @@ public class TrainingService {
     private void sendTrainingDataToExternalService(Training training, ActionType actionType) {
         try {
             ExternalTrainingServiceDTO request = new ExternalTrainingServiceDTO(
-                    training.getId(),
                     training.getTrainer().getUser().getUsername(),
                     training.getTrainer().getUser().getFirstName(),
                     training.getTrainer().getUser().getLastName(),

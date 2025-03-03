@@ -3,7 +3,7 @@ package org.edu.fpm.gym.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
-import org.edu.fpm.gym.dto.TrainerWorkloadSummaryDTO;
+import org.edu.fpm.gym.dto.externalservice.TrainerWorkloadSummaryDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerProfileDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerUpdateProfileDTO;
 import org.edu.fpm.gym.dto.training.TrainingDTO;

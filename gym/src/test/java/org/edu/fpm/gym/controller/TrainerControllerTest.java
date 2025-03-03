@@ -3,7 +3,7 @@ package org.edu.fpm.gym.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.SneakyThrows;
-import org.edu.fpm.gym.dto.TrainerWorkloadSummaryDTO;
+import org.edu.fpm.gym.dto.externalservice.TrainerWorkloadSummaryDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerProfileDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerUpdateProfileDTO;
 import org.edu.fpm.gym.dto.training.TrainingDTO;
