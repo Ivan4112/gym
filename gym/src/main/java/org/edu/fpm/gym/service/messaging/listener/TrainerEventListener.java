@@ -2,7 +2,7 @@ package org.edu.fpm.gym.service.messaging.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.edu.fpm.gym.dto.TrainerWorkloadSummaryDTO;
+import org.edu.fpm.gym.dto.externalservice.TrainerWorkloadSummaryDTO;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;

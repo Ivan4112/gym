@@ -2,7 +2,7 @@ package org.edu.fpm.gym.service;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.edu.fpm.gym.dto.TrainerWorkloadSummaryDTO;
+import org.edu.fpm.gym.dto.externalservice.TrainerWorkloadSummaryDTO;
 import org.edu.fpm.gym.dto.trainer.TraineeForTrainerDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerProfileDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerUpdateProfileDTO;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -60,7 +60,7 @@ public class TrainerService {
         }
 
         log.warn("Returning empty summary for username: {}", username);
-        return new TrainerWorkloadSummaryDTO(username, "", "", false, new HashMap<>());
+        return new TrainerWorkloadSummaryDTO(username, "", "", false, new ArrayList<>());
 
     }
 

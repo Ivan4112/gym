@@ -1,7 +1,7 @@
 package org.edu.fpm.gym.service;
 
 import lombok.SneakyThrows;
-import org.edu.fpm.gym.dto.TrainerWorkloadSummaryDTO;
+import org.edu.fpm.gym.dto.externalservice.TrainerWorkloadSummaryDTO;
 import org.edu.fpm.gym.dto.trainer.TrainerUpdateProfileDTO;
 import org.edu.fpm.gym.dto.training.TrainingDTO;
 import org.edu.fpm.gym.entity.Trainee;
@@ -59,10 +59,7 @@ class TrainerServiceTest {
 
     @Test
     void getTrainerMonthlyWorkload_Success_Test() {
-        Map<Integer, Map<Integer, Integer>> mockMonthlySummary = new HashMap<>();
-        mockMonthlySummary.put(1, Map.of(1, 10, 2, 20));
-        TrainerWorkloadSummaryDTO mockResponse = new TrainerWorkloadSummaryDTO(
-                username, "John", "Doe", true, mockMonthlySummary);
+        TrainerWorkloadSummaryDTO mockResponse = TestDataFactory.createTrainerWorkloadSummaryDTO(username);
 
         CompletableFuture<TrainerWorkloadSummaryDTO> futureResponse = CompletableFuture.completedFuture(mockResponse);
         when(trainerEventListener.getFutureResponse(username)).thenReturn(futureResponse);
@@ -71,10 +68,9 @@ class TrainerServiceTest {
 
         assertNotNull(result);
         assertEquals(username, result.username());
-        assertEquals("John", result.firstName());
-        assertEquals("Doe", result.lastName());
+        assertEquals("firstname", result.firstName());
+        assertEquals("lastname", result.lastName());
         assertTrue(result.isActive());
-        assertEquals(mockMonthlySummary, result.monthlySummary());
     }
 
     @Test
@@ -91,7 +87,7 @@ class TrainerServiceTest {
         assertEquals("", result.firstName());
         assertEquals("", result.lastName());
         assertFalse(result.isActive());
-        assertTrue(result.monthlySummary().isEmpty());
+        assertTrue(result.years().isEmpty());
     }
 
 
