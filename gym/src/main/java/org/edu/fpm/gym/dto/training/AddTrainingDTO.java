@@ -6,5 +6,6 @@ import java.time.LocalDate;
 
 public record AddTrainingDTO(String traineeUsername, String trainerUsername,
                              String trainingName,
-                             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd") LocalDate trainingDate,
+                             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+                             LocalDate trainingDate,
                              int trainingDuration) { }
