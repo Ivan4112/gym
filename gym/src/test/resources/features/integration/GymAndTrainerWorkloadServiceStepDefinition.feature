@@ -1,4 +1,4 @@
-@IntegrationTest
+@integrationTest
 Feature: Gym and TrainerWorkloadService integration
 
   Scenario: Adding a training sends a message to TrainerWorkloadService

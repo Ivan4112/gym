@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
         plugin = {"pretty", "html:target/cucumber-integration-report.html"},
         glue = "cucumber.integration",
         monochrome = true,
-        tags = "@IntegrationTest"
+        tags = "@integrationTest"
 )
 public class CucumberIntegrationRunnerTest {
 }

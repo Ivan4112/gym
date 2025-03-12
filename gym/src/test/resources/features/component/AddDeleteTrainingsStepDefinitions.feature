@@ -1,4 +1,4 @@
-@ComponentTest
+@сomponentTest
 Feature: Training Management
 
   Scenario: Successfully add a training session

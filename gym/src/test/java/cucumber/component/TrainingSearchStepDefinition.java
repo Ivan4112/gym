@@ -48,35 +48,6 @@ public class TrainingSearchStepDefinition {
         this.username = username;
     }
 
-    /*@When("the trainer searches for their training sessions")
-    public void theTrainerSearchesForTheirTrainingSessions() {
-        Trainer trainer = TestDataFactory.createTrainer(TestDataFactory.createUser(this.username), TestDataFactory.createTrainingType());
-
-        List<ExternalTrainingServiceDTO> trainings = List.of(
-                new ExternalTrainingServiceDTO(
-                        username, "FirstName", "LastName", true,
-                        LocalDate.now(), 2, ActionType.ADD));
-        System.out.println("username " + username);
-
-        when(trainerService.getTrainerByUsername(username)).thenReturn(trainer);
-        when(trainingService.getTrainingsByTrainer(trainer.getId())).thenReturn(ResponseEntity.ok(trainings));
-
-        if (username.equals("test.lastName7")) {
-            log.info("Searching for training sessions");
-            when(trainingService.getTrainingsByTrainer(anyInt()))
-                    .thenReturn(ResponseEntity.ok(Collections.singletonList(new ExternalTrainingServiceDTO(
-                            username, "test", "lastName7", true,
-                            LocalDate.now().plusDays(2), 2, ActionType.ADD
-                    ))));
-        } else {
-            when(trainingService.getTrainingsByTrainer(anyInt()))
-                    .thenReturn(ResponseEntity.noContent().build());
-        }
-        System.out.println("trainer searches for their training sessions");
-        response = trainingController.findTrainingByTrainerUsername(username);
-        System.out.println("response: " + response);
-    }*/
-
     @Then("the system should return a list of their scheduled trainings")
     public void theSystemShouldReturnListOfTheirScheduledTrainings() {
         assertTrue(response.getBody() != null && !response.getBody().isEmpty(),

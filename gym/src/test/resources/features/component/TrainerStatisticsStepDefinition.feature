@@ -1,4 +1,4 @@
-@ComponentTest
+@сomponentTest
 Feature: Trainer Statistics
 
   Scenario: Get monthly workload summary

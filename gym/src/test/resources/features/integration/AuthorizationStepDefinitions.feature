@@ -1,4 +1,4 @@
-@IntegrationTest
+@integrationTest
 Feature: Authorization
 
   Scenario: Successful login
